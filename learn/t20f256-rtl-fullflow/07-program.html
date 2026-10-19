@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 07 章 · 烧录与上板</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="07">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 07</div>
+  <h1>烧录与上板</h1>
+  <p class="sub">一句话烧录上板：预期现象清单、板没连也不慌的排查路径。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>用自然语言让 AI 完成烧录；知道板连上之后<b>应该看到什么</b>（逐条可勾选）；
+  能区分「板没连」和「烧录失败」两类现象。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>一句话烧录</h3>
+    <p class="why">这一步在做什么：把 outflow 里的比特流经板上 FT232HL 的 JTAG 口写进 FPGA
+    （active 模式，掉电即失）。AI 会调好烧录工具链，你要做的只有两件物理的事：
+    USB 线插到<b>JTAG 口</b>（别插到 USB 串口上）、打开板卡供电。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>比特流出来了，帮我烧到板子上，烧完把结果告诉我。</pre>
+    </div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · active 模式：掉电即失</summary>
+      <div class="body">
+        <p>比特流经板上 <b>FT232HL</b> 的 JTAG 口写进 FPGA——<b>active 模式，掉电即失</b>；
+        要让板卡上电自动加载，走的是 SPI Flash 固化那条路（见 STEP 4 右栏）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>板没连时的真实报错（本教程实测）</h3>
+    <div class="story">
+      <span class="tag">翻车实录</span>教程写作时板子没接，AI 原样转述了烧录工具的报错：FAIL + 一条 Python 异常。
+      确认这是「没找到板子」而非比特流问题，照右栏排查顺序检查物理连接，
+      再对 AI 说一句「板子插好了，再烧一次」即可——不用重跑编译。
+    </div>
+    <div class="status-line warn">⚠ 没找到板子 ≠ 比特流问题</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 报错原文与翻译</summary>
+      <div class="body">
+        <pre><span class="r">****** Python exception running: efx_run.py marquee-lab --prj --flow program</span>
+<span class="r">    :   FAIL</span>
+<span class="r">An exception occurred: list index out of range</span></pre>
+        <p>翻译：JTAG 设备枚举列表是空的，工具取「第 0 台设备」时越界。<b>这是「没找到板子」，不是比特流问题。</b>
+        看到这条不用慌，更不用重跑编译。</p>
+      </div>
+    </details>
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 排查顺序（从最常见的开始）</summary>
+      <div class="body">
+        <ol>
+          <li>USB 线插的是不是 JTAG 口（板上 FT232HL 那个），别插到 USB 串口（CH340N）上；</li>
+          <li>设备管理器里有没有出现 FT232HL 的 USB 设备；</li>
+          <li>板卡供电开关/跳线是否打开；</li>
+          <li>换一根能传数据的 USB 线（很多线只能充电）。</li>
+        </ol>
+        <p>查完任何一项，回头对 AI 说一句「板子插好了，再烧一次」即可。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>连上板之后：预期现象清单（基线跑马灯版）</h3>
+    <p class="why">这一步在做什么：把「上板验证」拆成一条条可观察、可勾选的事实，而不是「看起来能跑」。
+    烧完别急着宣布成功，逐条对照。</p>
+    <table>
+      <tr><th>#</th><th>预期现象</th><th>对应规格条款</th><th>不成立时看哪里</th></tr>
+      <tr><td>1</td><td>烧录完成后 <b>LED1..LED10 按顺序逐个点亮</b>，每 125 ms 前进一位（8 Hz），10 位一圈循环</td><td>REQ-1（one-hot 跑马）</td><td>若多个 LED 同亮/全灭交替 → 检查 led_bus 位序映射</td></tr>
+      <tr><td>2</td><td>任意时刻<b>只有一个</b> LED 亮</td><td>PROP-ONEHOT</td><td>多于一个 → 位宽/移位方向错</td></tr>
+      <tr><td>3</td><td>按住 <b>BUT1</b>（A4 复位键）：10 个 LED <b>全部熄灭</b></td><td>REQ-2（复位全灭）</td><td>不全灭 → 输出寄存器的复位极性</td></tr>
+      <tr><td>4</td><td>松开 BUT1：从 LED1 重新开始跑</td><td>REQ-2（释放初始码型）</td><td>从别处开始 → 复位值</td></tr>
+      <tr><td>5</td><td>步进节奏稳定，无肉眼可见的抖动或跳变</td><td>REQ-3（时钟使能分频）</td><td>抖动 → 是否误用了分频时钟</td></tr>
+    </table>
+    <p>逐条都对，就对 AI 说：</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>板子上现象全对，把这次上板验证登记成证据。</pre>
+    </div>
+    <div class="status-line warn">⚠ 未连板 · programming / hardwareValidation 保持 NOT_RUN</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 上板证据与 NOT_RUN 口径</summary>
+      <div class="body">
+        <p>AI 会用 <code>hardware.validate</code> 把场景清单登记为证据。教程环境没连板卡，
+        所以控制面证据向量里 programming / hardwareValidation 保持 <code>NOT_RUN</code>——
+        这在工程语义上表示「尚未验证」，<b>不得</b>由编译成功或本清单推断为板上 PASS。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>掉电与固化</h3>
+    <p class="why">这一步在做什么：交代 active 烧录的时效边界，以及「上电自动加载」要走哪条路——细节在右栏。</p>
+    <div class="status-line warn">⚠ active 模式 · 掉电即失</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 固化 = 写板载 SPI Flash</summary>
+      <div class="body">
+        <p>active 模式烧录的比特流掉电即失。要让板卡上电自动加载，需要把 .hex 写进板载 W25Q32 SPI Flash
+        （管脚 N1/L3/M3/P3/G5 已在目录中预留），这属于后续迭代——本教程聚焦 SRAM 烧录。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>基线功能闭环完成（仿真 PASS + 原生编译 PASS + 烧录路径与验收清单就绪）。接下来进入本教程的下半场：
+  两个<b>并行增量</b>。第 08 章先看控制面如何给每个意图开出独立的 git worktree，让两个功能互不干扰地并行推进。</p>
+</section>
+<div class="ch-nav"><a href="06-native-build.html">← 上一章</a><a href="08-increment-seg.html">下一章：增量一·数码管 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

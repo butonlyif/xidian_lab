@@ -1,0 +1,20 @@
+﻿WARNING: cannot find correct IV value
+Creating D:\work\xidian_lab\test\marquee-lab\outflow
+Running: efx_run_map.py marquee-lab --family Trion --device T20F256 --project_xml D:\work\xidian_lab\test\marquee-lab\marquee-lab.xml --output_dir outflow --work_dir work_syn --opt root=t20f256_xd_ps_eval_marquee --opt veri_options=verilog_mode=verilog_sv,vhdl_mode=vhdl_2008 work-dir=work_syn write_efx_verilog=on --un_flow
+   map :	PASS 
+Running: efx_run_pt_unified.py marquee-lab Trion T20F256 --output_dir outflow --timing_model C4 --project_xml marquee-lab.xml --un_flow --peri_netlist outflow\marquee-lab.peri.db --peri_scripts constraints/t20f256_xd_ps_eval_marquee.pins.isf
+   ERROR: GPIO clk_50m_i exists.
+
+   ERROR: Interface Designer error : msg_level:MsgLevel.error msg:GPIO clk_50m_i exists. src_excp:None
+
+   ERROR: GPIO arst_n_i exists.
+
+   ERROR: Interface Designer error : msg_level:MsgLevel.error msg:GPIO arst_n_i exists. src_excp:None
+
+   ERROR: Bus name is used.
+
+   ERROR: Interface Designer error : msg_level:MsgLevel.error msg:Bus name is used. src_excp:None
+
+   ERROR encountered running Interface Designer
+
+   interface :	FAIL 

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "scenarios",
+  "items": [
+    {
+      "id": "SCEN-101",
+      "title": "复位释放后计数归零",
+      "moduleId": "segcount-display",
+      "verificationRole": "reset",
+      "requirementIds": ["REQ-101"],
+      "preconditions": ["arst_n_i 已断言至少 3 个时钟周期", "clk_i 稳定运行"],
+      "stimulus": ["释放 arst_n_i"],
+      "expected": ["同步释放后首个采样 bcd_r == 0", "tick/scan 计数器与位索引归零", "输出无 X"],
+      "endCondition": "观察到第一次计数递增前的首采样完成"
+    },
+    {
+      "id": "SCEN-102",
+      "title": "每拍 +1 计数主流程（含 9→10 进位）",
+      "moduleId": "segcount-display",
+      "verificationRole": "main-flow",
+      "requirementIds": ["REQ-102"],
+      "preconditions": ["复位已释放", "TICK_CYCLES 提速为 4（生产 50_000_000）"],
+      "stimulus": ["自由运行 clk_i"],
+      "expected": ["每次 bcd_r 变化严格等于期望值（十进制转 BCD 模型）+1", "9→10 等进位正确", "连续 ≥12 次递增覆盖段图案 0-9"],
+      "endCondition": "递增次数 ≥12"
+    },
+    {
+      "id": "SCEN-103",
+      "title": "回绕边界 99→00（DIGITS=2 旁证实例）",
+      "moduleId": "segcount-display",
+      "verificationRole": "critical-boundary",
+      "requirementIds": ["REQ-103"],
+      "preconditions": ["复位已释放", "旁证实例 DIGITS=2、TICK_CYCLES=4"],
+      "stimulus": ["自由运行 clk_i 直至计满"],
+      "expected": ["到达 99 后下一次递增回绕到 00", "回绕后从 0 重新递增", "观察到 ≥2 次回绕"],
+      "endCondition": "回绕事件 ≥2 次"
+    },
+    {
+      "id": "SCEN-104",
+      "title": "扫描/译码/消隐 + 顶层集成冒烟（含基线保持）",
+      "moduleId": "segcount-display",
+      "verificationRole": "integration-smoke",
+      "requirementIds": ["REQ-104"],
+      "preconditions": ["顶层 top + led_marquee + seg7_counter 联合编译通过"],
+      "stimulus": ["施加 50 MHz 时钟与一次上电复位序列"],
+      "expected": ["每次扫描位切换：dig == ~(one-hot<<idx)（共阴低有效）", "seg == 消隐(0) 或当前位 BCD 的 0-9 译码", "前导零消隐（全零仅最低位显示）", "跑马灯四性质自检持续通过", "联合仿真正常结束无挂起无 X，输出 TB-RESULT: PASS"],
+      "endCondition": "扫描校验 ≥16 次、跑马灯 ≥10 转、递增 ≥12 次后正常结束"
+    }
+  ]
+}

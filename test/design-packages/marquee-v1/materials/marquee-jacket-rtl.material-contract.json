@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "material",
+  "id": "marquee-jacket-rtl",
+  "title": "catalog marquee jacket RTL 基线（硬件验证）",
+  "classification": "REUSE_UNCHANGED",
+  "purpose": "跑马灯 RTL（顶层 t20f256_xd_ps_eval_marquee + 核心 led_marquee）逐字节复用 catalog t20f256-xd-ps-eval marquee jacket 的硬件验证实现，作为 marquee-lab v1 的设计基线。",
+  "selectionReason": "jacket 在同一板卡（t20f256-xd-ps-eval）上完成硬件验证（one-hot 跑马、8 Hz、按键复位），与本意图需求完全一致；重新生成无增益。工作区副本与 catalog 源逐字节一致（SHA-256 复核通过）。",
+  "source": {
+    "kind": "catalog",
+    "uri": "catalog://boards/t20f256-xd-ps-eval/jackets/marquee（rtl/top.v + rtl/led_marquee.sv）",
+    "version": "jacket 1.0.0 @ catalog 0.9.6 (commit a13abff)",
+    "digest": "03aec0698e193f678e1624e4472dd0fa90dbf4a280852fca6aa70e3797061a8f",
+    "license": "EvoVerse SDK catalog 物料（随 SDK 分发）"
+  },
+  "function": "对外可观察行为：50 MHz 时钟 + 低有效异步复位输入，10 位 one-hot LED 输出每 STEP_CYCLES 周期左移一位并回绕，复位释放后从 LED0 开始。",
+  "ports": [
+    {
+      "name": "clk_50m_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "arst_n_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "led_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "10",
+      "protocolRole": "data"
+    }
+  ],
+  "parameters": [],
+  "evidence": [
+    {
+      "kind": "catalog-hardware-validation",
+      "reference": "catalog t20f256-xd-ps-eval/jackets/marquee/marquee.md（工程描述标记 hardware-validated）",
+      "summary": "jacket 快照在其原始工程名下完成板上验证：10 LED one-hot 跑马、按 BUT1 复位从 LED0 重启"
+    },
+    {
+      "kind": "native-compile-double-pass",
+      "reference": "project-review/2026-10-17-marquee-lab-compile-baseline/evidence/run2-bootstrap-pass.log + run3-replay-pass.log",
+      "summary": "marquee-lab 工程名下 unified compile 引导+重放双连 PASS（map/interface/pnr/pgm）"
+    },
+    {
+      "kind": "timing-met",
+      "reference": "project-review/2026-10-17-marquee-lab-compile-baseline/evidence/run3-timing.rpt",
+      "summary": "50 MHz 约束下 Fmax 190.767 MHz，setup slack 14.758 ns / hold slack 0.306 ns，无违例"
+    }
+  ],
+  "applicability": {
+    "device": "Trion T20F256（timing model C4）",
+    "board": "t20f256-xd-ps-eval",
+    "clockHz": 50000000,
+    "ledCount": 10
+  },
+  "invalidationConditions": [
+    "板卡 pin map 变更（LED/时钟/复位管脚移动）",
+    "LED 数量不是 10 或时钟不是 50 MHz（参数需重适配）",
+    "catalog jacket 基线升级且行为变化"
+  ],
+  "integrationChecks": [
+    "pins ISF 重放编译 PASS（create_* 注释的纯 pins 风格）",
+    "marquee-lab.peri.xml netlist 锁与当前工程名一致（改名后必须原生重建，见 review C-1）",
+    "SDC create_clock -period 20.000 与 clk_50m_i 端口名精确匹配"
+  ]
+}

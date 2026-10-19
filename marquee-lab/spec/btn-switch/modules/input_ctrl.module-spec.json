@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "module",
+  "id": "input_ctrl",
+  "moduleName": "input_ctrl",
+  "title": "按键消抖脉冲 + 拨码同步采样",
+  "purpose": "把板级异步按键与拨码输入整理为时钟域内可信信号：按键经两级同步加稳定计数消抖，产生每按一次恰一个的单周期脉冲；拨码经两级同步直接输出电平。",
+  "responsibilities": [
+    "对 NUM_BTNS 路低有效按键做 2 级同步 + DEBOUNCE_CYCLES 稳定计数消抖",
+    "在每个按下沿（稳定判定达成且新稳定电平为按下）产生一个单周期脉冲",
+    "对 NUM_SW 路拨码做 2 级同步后输出电平",
+    "复位期间脉冲与拨码输出全零"
+  ],
+  "nonResponsibilities": [
+    "不负责按键/拨码管脚电气属性（上拉、IO_STANDARD 由板卡与 ISF 管理）",
+    "不做拨码消抖（机械拨码切换速率远低于采样率，两级同步足够）",
+    "不解释脉冲语义（暂停/反向等由上层模块决定）"
+  ],
+  "parameters": [
+    {
+      "name": "NUM_BTNS",
+      "type": "integer",
+      "default": 3,
+      "constraints": ["1 <= NUM_BTNS <= 8"],
+      "behavioralEffect": "按键路数（板载 BUT2/BUT3/BUT4 = 3 路）"
+    },
+    {
+      "name": "NUM_SW",
+      "type": "integer",
+      "default": 10,
+      "constraints": ["1 <= NUM_SW <= 32"],
+      "behavioralEffect": "拨码路数（板载 SW1..SW10 = 10 路）"
+    },
+    {
+      "name": "DEBOUNCE_CYCLES",
+      "type": "integer",
+      "default": 1000000,
+      "constraints": ["DEBOUNCE_CYCLES >= 4", "50_000_000 * 0.02 = 1_000_000（20 ms @ 50 MHz）"],
+      "behavioralEffect": "按键稳定判定阈值：低电平需连续保持该拍数才被接受；仿真用小值提速"
+    }
+  ],
+  "ports": [
+    {
+      "name": "clk_i",
+      "direction": "input",
+      "type": "clock",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "rst_n_i",
+      "direction": "input",
+      "type": "async-reset-active-low",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "btn_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "NUM_BTNS",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data"
+    },
+    {
+      "name": "sw_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "NUM_SW",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data"
+    },
+    {
+      "name": "btn_pulse_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "NUM_BTNS",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "valid",
+      "idleValue": "无按键沿时全 0（常态 0，每个按下沿恰一拍 1）"
+    },
+    {
+      "name": "sw_sync_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "NUM_SW",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data",
+      "idleValue": "复位期间全 0；运行期间经 2 级同步跟随 sw_i"
+    }
+  ],
+  "dataObjects": [
+    {
+      "name": "btn_sync_r",
+      "role": "按键两级同步链（2 级 × NUM_BTNS 位）",
+      "width": "6",
+      "resetValue": "全 1（同步链初值视为释放态）",
+      "updateCondition": "每个 clk_i 上升沿移位采样 btn_i",
+      "ownership": "owned"
+    },
+    {
+      "name": "btn_stable_r",
+      "role": "已接受的按键稳定电平（低有效）",
+      "width": "3",
+      "resetValue": "全 1（释放）",
+      "updateCondition": "db_cnt 达 DEBOUNCE_CYCLES-1 且 btn_sync2 与其不同时锁存 btn_sync2",
+      "ownership": "owned"
+    },
+    {
+      "name": "db_cnt",
+      "role": "按键稳定计数器（每键独立逻辑共用一组计数的向量化实现，规格按逐键语义）",
+      "width": "clog2(DEBOUNCE_CYCLES)",
+      "resetValue": "0",
+      "updateCondition": "btn_sync2 与 btn_stable 不同时每拍 +1（达阈值回零），相同时清零",
+      "ownership": "owned"
+    },
+    {
+      "name": "pulse_r",
+      "role": "单周期脉冲寄存器",
+      "width": "3",
+      "resetValue": "0",
+      "updateCondition": "稳定达成拍且新稳定为按下（0）时置 1 一拍，其余拍清零",
+      "ownership": "owned"
+    },
+    {
+      "name": "sw_sync_r",
+      "role": "拨码两级同步链（2 级 × NUM_SW 位）",
+      "width": "20",
+      "resetValue": "0",
+      "updateCondition": "每个 clk_i 上升沿移位采样 sw_i",
+      "ownership": "owned"
+    }
+  ],
+  "behavior": {
+    "latencyCycles": 0,
+    "initiationIntervalCycles": 1,
+    "backpressure": "无——输入采样型模块，无 valid/ready 握手",
+    "errors": "无错误通路；毛刺输入的拒判是设计行为而非错误"
+  },
+  "algorithmIds": ["algo-debounce-pulse"],
+  "requirementIds": ["REQ-1", "REQ-2", "REQ-3", "REQ-4"],
+  "propertyIds": ["PROP-PULSE-ONE", "PROP-GLITCH-SUPPRESS", "PROP-SW-SYNC", "PROP-RESET-ZERO"]
+}

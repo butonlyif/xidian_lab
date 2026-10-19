@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "scenarios",
+  "items": [
+    {
+      "id": "SCN-RESET",
+      "moduleId": "input_ctrl",
+      "verificationRole": "reset",
+      "preconditions": [
+        "上电，时钟自由运行",
+        "rst_n_i 保持为 0，btn_i/sw_i 施加任意激励"
+      ],
+      "stimulus": [
+        "保持 rst_n_i=0 若干时钟周期，期间逐周期采样 btn_pulse_o 与 sw_sync_o",
+        "释放 rst_n_i 后再运行若干周期，确认无虚假脉冲"
+      ],
+      "endCondition": "复位期间两输出全零成立；释放后同步链初值不产生任何脉冲"
+    },
+    {
+      "id": "SCN-PRESS",
+      "moduleId": "input_ctrl",
+      "verificationRole": "main-flow",
+      "preconditions": [
+        "复位已释放",
+        "50 MHz 时钟自由运行（仿真用缩小的 DEBOUNCE_CYCLES）"
+      ],
+      "stimulus": [
+        "对 3 路按键各施加一次持续超过 DEBOUNCE_CYCLES 的稳定低电平按压",
+        "对拨码 10 位各施加一次翻转",
+        "逐周期采样 btn_pulse_o、btn_stable 语义与 sw_sync_o"
+      ],
+      "endCondition": "每次按压恰产生 1 个单周期脉冲；每次拨码翻转后 2 拍内 sw_sync_o 跟随"
+    },
+    {
+      "id": "SCN-GLITCH",
+      "moduleId": "input_ctrl",
+      "verificationRole": "critical-boundary",
+      "preconditions": [
+        "复位已释放",
+        "按键处于释放态"
+      ],
+      "stimulus": [
+        "注入短毛刺（10 拍低）、中毛刺（DEBOUNCE_CYCLES/10 拍低）、边界毛刺（DEBOUNCE_CYCLES-1 拍低）三类干扰",
+        "随后施加一次恰 DEBOUNCE_CYCLES 拍的稳定按压"
+      ],
+      "endCondition": "三类毛刺均不产生脉冲；随后的稳定按压恰产生 1 个脉冲（阈值边界精确）"
+    },
+    {
+      "id": "SCN-SMOKE",
+      "moduleId": "input_ctrl",
+      "verificationRole": "integration-smoke",
+      "preconditions": [
+        "testbench 直接例化 input_ctrl（集成路径冒烟：模块可被外部例化并观察全部端口）"
+      ],
+      "stimulus": [
+        "施加复位脉冲后做一次快速按压与拨码翻转",
+        "观察全部输出端口"
+      ],
+      "endCondition": "端口行为符合预期且无 X/Z"
+    }
+  ]
+}

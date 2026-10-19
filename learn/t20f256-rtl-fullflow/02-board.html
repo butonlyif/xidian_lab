@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 02 章 · 认识这块板子</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="02">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 02</div>
+  <h1>认识这块板子</h1>
+  <p class="sub">t20f256-xd-ps-eval：Trion T20F256、110 个已定义管脚、够我们玩三轮的板载物料。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>搞清楚三件事：板上有<b>哪些物料</b>、每个物料的<b>管脚和极性</b>从哪里查、哪些信息属于「假设」需要写进设计决策。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+    <h2>器件与框架</h2>
+    <table>
+      <tr><th>属性</th><th>值</th></tr>
+      <tr><td>FPGA</td><td>Efinix <b>Trion T20F256</b>（F256 封装，timing model C4）</td></tr>
+      <tr><td>系统时钟</td><td>50 MHz 板载晶振 → <code>clk_50m</code> @ <b>H13</b>（GCLK 管脚）</td></tr>
+      <tr><td>复位按键</td><td>BUT1 → <code>arst_n</code> @ <b>A4</b>，低有效、带上拉</td></tr>
+      <tr><td>IO 电压</td><td>全部 7 个 IO bank 均为 3.3 V（<code>3.3 V LVTTL / LVCMOS</code>）</td></tr>
+    </table>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 骨架信号与角色标签</summary>
+      <div class="body">
+        <p>上表前三行（时钟、复位、LED）这三条「骨架信号」就是 SDK 生成 stage0 工程的依据——
+        板卡目录里专门给它们打了 <code>main_clock / reset / user_led</code> 三个角色标签，
+        缺一个骨架都生成不了。</p>
+      </div>
+    </details>
+    <details class="aside-card a-status" open>
+      <summary>状态 · 器件硬指标速查</summary>
+      <div class="body">
+        <p>Efinix Trion <b>T20F256</b> · F256 封装 · timing model <b>C4</b></p>
+        <p>时钟 50 MHz @ <b>H13</b>（GCLK）· 复位 BUT1 @ <b>A4</b>（低有效、带上拉）</p>
+        <p>IO 电压：全部 <b>7 个 IO bank</b> 均 <b>3.3 V</b>（3.3 V LVTTL / LVCMOS）</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+    <h2>本教程会用到的物料</h2>
+    <table>
+      <tr><th>物料</th><th>数量</th><th>信号（管脚）</th><th>极性 / 备注</th></tr>
+      <tr>
+        <td>用户 LED</td><td>10</td>
+        <td><code>led_user</code>(T8) … <code>led_user10</code>(R15)，中间依次 T9/T10/T11/T12/R13/T14/R14/T15</td>
+        <td><b>高电平点亮</b>（经电阻到地）</td>
+      </tr>
+      <tr>
+        <td>7 段数码管 ×2（FJ3461AH）</td><td>8 位</td>
+        <td>段 <code>seg_a</code>..seg_dp：C6/C5/B7/C8/A9/B6/B5/C7；位选 <code>seg_sel1..8</code>：A10/C10/C11/C9/C12/C13/C14/B9</td>
+        <td>段假设<b>低电平点亮</b>（共阳惯例）；位选假设高有效——见下方「假设与决策」</td>
+      </tr>
+      <tr>
+        <td>轻触按键</td><td>3（+BUT1 复位）</td>
+        <td><code>user_btn2/3/4</code> @ B4/A3/A2</td>
+        <td>低有效、板上拉</td>
+      </tr>
+      <tr>
+        <td>拨码开关</td><td>10</td>
+        <td><code>dip_sw1..10</code> @ B15/A15/B14/A14/B13/A13/B12/A11/B11/B10</td>
+        <td>假设上拨 = 1</td>
+      </tr>
+      <tr>
+        <td>蜂鸣器</td><td>1</td>
+        <td><code>buzzer</code> @ T2</td>
+        <td>经三极管驱动，假设高电平鸣</td>
+      </tr>
+    </table>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 极性列的「假设」是什么意思</summary>
+      <div class="body">
+        <p>极性列写着「假设」的项（数码管段低电平点亮、位选高有效、拨码上拨 = 1、蜂鸣器高电平鸣），
+        都是板卡文档没有写死的电气细节——本章末尾会把它们逐条写成设计决策。</p>
+      </div>
+    </details>
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 板上还有更多（本教程不展开）</summary>
+      <div class="body">
+        <p>板卡目录里同样定义了这些物料，留给后续迭代：VGA（19 管脚电阻梯 DAC）、
+        USB 串口（CH340N，N16/P16）、SPI Flash（W25Q32）、I2C EEPROM、
+        40-pin 扩展口上的 18 对 LVDS、JTAG（FT232HL）。</p>
+        <p>第 12 章的路线图会用到它们中的一部分。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+    <h2>管脚信息的唯一权威来源</h2>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># 板卡管脚表（节选）：interface, pin_name, ball, bank, io_std, dir, class, function, notes</span>
+OSC_50M,      clk_50m,   H13, 3D_3E,     3.3V_LVCMOS, IN,  CLK,   main_clock, 50MHz osc X2 via R87
+USER_LED1,    led_user,  T8,  4B,        3.3V_LVCMOS, OUT, GP_IO, user_led,   LED1 via resistor to GND
+USER_BTN_BUT2,user_btn2, B4,  1D_1E,     3.3V_LVCMOS, IN,  GP_IO, user_btn2,  push button, pullup, active-low
+SEG_DIG,      seg_a,     C6,  1D_1E,     3.3V_LVCMOS, OUT, GP_IO, seg_a,      7-seg A via RN9/RN11
+DIP_SW1,      dip_sw1,   B15, 3A_3B_3C,  3.3V_LVCMOS, IN,  GP_IO, dip_sw1,   slide switch SW1
+BUZZER,       buzzer,    T2,  4B,        3.3V_LVCMOS, OUT, GP_IO, buzzer,     via R7 driver transistor</pre></div>
+    <p class="why">这张 CSV（110 行）是后面一切管脚约束（ISF）的数据来源。</p>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 不要手写管脚号</summary>
+      <div class="body">
+        <p>任何时候要新用一组物料，都回到这张表查，或者问 Trae 让它替你查。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">习惯</span>
+    <h3>把「假设」写进设计决策</h3>
+    <p class="why">这一步在做什么：板卡文档没有写死的电气细节（数码管共阳/共阴、位选有效电平、拨码方向），
+    在设计里必须显式声明，将来上板验证若不符，改一处即可。</p>
+    <p>本教程的做法是在规格包的 <code>decisions.json</code> 里各记一条（第 04 章会看到完整文件），例如：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>{
+  "id": "DEC-SEG-LOW-ACTIVE",
+  "title": "段线低电平点亮（共阳段码表）",
+  "decision": "seg_o 采用低有效段码（0→8'hC0 … 9→8'h90，dp 恒灭）",
+  "rationale": "FJ3461AH 经电阻网络驱动，业界共阳惯例；上板若整段相反，把查表值按位取反即可（一处改动）",
+  "status": "ACCEPTED"
+}</pre></div>
+    <p>四个假设各一条：段低有效、位选高有效、按键低有效、拨码上拨为 1。它们全部在集成后上板阶段验证。</p>
+    <div class="status-line ok">✓ 四个假设已显式记录 · 待上板验证</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 显式声明的收益</summary>
+      <div class="body">
+        <p>把假设写进 decisions.json 的好处是可追溯：上板验证若不符，改一处即可——
+        比如整段极性相反，把查表值按位取反就行（上方 rationale 里写的就是这一处改动）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>物料清单、管脚来源、四个极性假设都清楚了。下一章正式开工：用一句自然语言让 Trae 生成 stage0 骨架工程，
+  并且真的把它编译通过——先证明工具链是健康的，再谈功能。</p>
+</section>
+<div class="ch-nav"><a href="01-environment.html">← 上一章</a><a href="03-new-project.html">下一章：创建第一个工程 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

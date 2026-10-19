@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "properties",
+  "items": [
+    {
+      "id": "PROP-PULSE-ONE",
+      "moduleId": "input_ctrl",
+      "ruleId": "rtl-baseline/debounce-pulse",
+      "antecedent": "按键从稳定释放态进入稳定按下态（经 DEBOUNCE_CYCLES 判定）",
+      "consequent": [
+        "该判定拍 btn_pulse_o 对应位为 1 且仅持续 1 个 clk_i 周期"
+      ],
+      "requiredActivations": 3,
+      "observedSignals": ["btn_i", "db_cnt", "btn_pulse_o"]
+    },
+    {
+      "id": "PROP-GLITCH-SUPPRESS",
+      "moduleId": "input_ctrl",
+      "ruleId": "rtl-baseline/glitch-reject",
+      "antecedent": "低电平持续拍数 < DEBOUNCE_CYCLES 后回高",
+      "consequent": [
+        "不产生任何脉冲（计数中途清零，稳定电平不变）"
+      ],
+      "requiredActivations": 3,
+      "observedSignals": ["btn_i", "db_cnt", "btn_pulse_o"]
+    },
+    {
+      "id": "PROP-SW-SYNC",
+      "moduleId": "input_ctrl",
+      "ruleId": "rtl-baseline/two-flop-sync",
+      "antecedent": "sw_i 某位在第 t 拍翻转并保持",
+      "consequent": [
+        "sw_sync_o 对应位最迟在第 t+2 拍起等于新电平"
+      ],
+      "requiredActivations": 10,
+      "observedSignals": ["sw_i", "sw_sync_o"]
+    },
+    {
+      "id": "PROP-RESET-ZERO",
+      "moduleId": "input_ctrl",
+      "ruleId": "rtl-baseline/reset-zero",
+      "antecedent": "rst_n_i == 0",
+      "consequent": [
+        "btn_pulse_o == 3'b000 且 sw_sync_o == 10'b0"
+      ],
+      "requiredActivations": 1,
+      "observedSignals": ["rst_n_i", "btn_pulse_o", "sw_sync_o"]
+    }
+  ]
+}

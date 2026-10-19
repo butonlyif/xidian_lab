@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "executable-system",
+  "specId": "marquee-v1",
+  "revision": "1",
+  "title": "marquee-lab v1 -- 10-LED one-hot marquee on t20f256-xd-ps-eval",
+  "purpose": "第一个正式版本：在 t20f256-xd-ps-eval 评估板上以 50 MHz 系统时钟驱动 10 个用户 LED 的 one-hot 跑马灯，每秒 8 步循环，按键低有效异步复位。设计为单时钟域纯同步逻辑，复用 catalog marquee jacket 的硬件验证 RTL 基线。",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "statement": "复位行为：arst_n_i 低有效异步复位；复位释放后，跑马序列从 LED0（one-hot bit0）重新开始，计数器清零。",
+      "acceptance": "同步释放后首个采样点 led_o == 10'b0000000001；复位期间输出稳定无 X；同步释放经 3 级同步器（rst_sync_r[2]）。"
+    },
+    {
+      "id": "REQ-002",
+      "statement": "跑马主流程：任一时刻恰好 1 个 LED 点亮；每个步进节拍 one-hot 循环左移一位；50 MHz 下步进频率 8 Hz（STEP_CYCLES = 6_250_000）。",
+      "acceptance": "仿真（STEP_CYCLES 提速为 4）中每个采样点 popcount(led_o) == 1；相邻步进满足 rotate-left 关系；整圈 10 步。"
+    },
+    {
+      "id": "REQ-003",
+      "statement": "步进时序与边界：两次输出翻转之间恰好间隔 STEP_CYCLES 个时钟周期；led[9] -> led[0] 回绕发生在 led[9] 保持满 STEP_CYCLES 周期之后的下一个步进节拍；使用 clock enable 语义，不派生分频时钟。",
+      "acceptance": "翻转间隔计数 == STEP_CYCLES；回绕步满足同一关系；整圈周期 == 10 x STEP_CYCLES；无派生时钟。"
+    },
+    {
+      "id": "REQ-004",
+      "statement": "顶层集成：顶层 t20f256_xd_ps_eval_marquee 仅做端口直连例化 marquee 核；与板级约束（pins ISF：clk@H13、rst@A4、LED T8-R15，全部 3.3 V LVTTL/LVCMOS）一致；SDC 声明 20 ns 主时钟。",
+      "acceptance": "顶层+核心联合仿真连续完成 >= 2 整圈无挂起、led_o 无 X；引脚/电平与板卡 pin map 一致（板上观察为延期证据）。"
+    }
+  ],
+  "instances": [
+    {
+      "id": "u_marquee",
+      "contractKind": "module",
+      "contractId": "marquee-core",
+      "title": "LED 跑马灯核心（one-hot 循环左移）",
+      "level": "module"
+    }
+  ],
+  "connections": [],
+  "clockDomains": [
+    {
+      "id": "clk_50m",
+      "frequencyHz": 50000000
+    }
+  ],
+  "resetDomains": [
+    {
+      "id": "rst_board_n",
+      "clockDomain": "clk_50m",
+      "polarity": "active-low",
+      "assertion": "异步断言（板上按键 BUT1，arst_n_i@A4）",
+      "release": "同步释放：核内 3 级同步器 rst_sync_r，域内独立"
+    }
+  ],
+  "assurance": {
+    "rulePacks": ["rtl-baseline@1"],
+    "contracts": [],
+    "exceptions": []
+  },
+  "verification": {
+    "scenarioIds": ["SCEN-001", "SCEN-002", "SCEN-003", "SCEN-004"],
+    "oracleIds": ["ORC-001", "ORC-002", "ORC-003", "ORC-004"],
+    "propertyIds": ["PROP-001", "PROP-002", "PROP-003"],
+    "coverageIds": ["COV-001"]
+  },
+  "integrationPolicy": {
+    "nativeBuildRequired": true
+  }
+}

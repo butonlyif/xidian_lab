@@ -1,0 +1,9 @@
+﻿WARNING: cannot find correct IV value
+Running: efx_run_map.py marquee-lab --family Trion --device T20F256 --project_xml D:\work\xidian_lab\test\marquee-lab\marquee-lab.xml --output_dir outflow --work_dir work_syn --opt root=t20f256_xd_ps_eval_marquee --opt veri_options=verilog_mode=verilog_sv,vhdl_mode=vhdl_2008 work-dir=work_syn write_efx_verilog=on --un_flow
+   map :	PASS 
+Running: efx_run_pt_unified.py marquee-lab Trion T20F256 --output_dir outflow --timing_model C4 --project_xml marquee-lab.xml --un_flow --peri_netlist outflow\marquee-lab.peri.db --peri_scripts constraints/t20f256_xd_ps_eval_marquee.pins.isf
+   interface :	PASS 
+Running: efx_run_pnr.py marquee-lab --prj D:\work\xidian_lab\test\marquee-lab\marquee-lab.xml --family Trion --device T20F256 --timing_model C4 --output_dir outflow --work_dir work_pnr --opt sdc_file=constraints/t20f256_xd_ps_eval_marquee.sdc
+   pnr :	PASS 
+Running: efx_run_pgm.py marquee-lab --family Trion --device T20F256 --output_dir outflow --work_dir work_pnr --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=off enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
+   pgm :	PASS 

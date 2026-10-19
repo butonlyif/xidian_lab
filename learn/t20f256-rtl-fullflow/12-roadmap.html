@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 12 章 · 下一步：RISC-V</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="12">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main class="solo">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 12</div>
+  <h1>下一步：RISC-V</h1>
+  <p class="sub">纯 RTL 之后，这块板还能走多远——串口、软核、软硬协同的路线图。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>盘点已具备的跳板（串口/拨码/外设）与 SDK 已提供的软件能力，画出一条从「逻辑跑马灯」到「软件可编程」的迭代路径。</p>
+</section>
+
+<h2>为什么现在才谈软核</h2>
+<p>本教程刻意先走完纯 RTL：控制面的可靠链路（意图→规格→候选→仿真→晋级）对硬件逻辑与软硬协同设计是同一套。
+先把这条链在纯逻辑上练熟，加入处理器后的每一步（总线外设、寄存器映射、软件测试）才有可信的落点。</p>
+
+<h2>板上现成的跳板</h2>
+<table>
+  <tr><th>资源</th><th>在本教程中的状态</th><th>下一步用法</th></tr>
+  <tr><td>USB 串口（CH340N，N16/P16）</td><td>未使用</td><td>软核的 stdout/命令行——第一个软件程序的落点</td></tr>
+  <tr><td>拨码 SW1..10</td><td>已采样未接负载</td><td>软核的 GPIO 输入：读拨码改跑马灯方向/速度（正好补上第 10 章留的口）</td></tr>
+  <tr><td>数码管 / LED / 蜂鸣器</td><td>纯 RTL 驱动</td><td>映射成软核的内存外设：软件写寄存器即显示</td></tr>
+  <tr><td>SPI Flash（W25Q32）</td><td>未使用</td><td>固化比特流 / 存软核程序镜像</td></tr>
+  <tr><td>VGA（19 管脚电阻梯）</td><td>未使用</td><td>帧缓冲显示（进阶）</td></tr>
+</table>
+
+<h2>SDK 已经准备好的软件能力</h2>
+<ul>
+  <li><b>RISC-V Sapphire SoC</b>：通过 Efinity 原生 IP Configuration Wizard 配置多 Tab GUI，一键 Sync 回工程；</li>
+  <li><b>RISC-V 工具链管理</b>（xPack RISC-V GCC）：SoC 创建、App 构建、BSP 生成；</li>
+  <li><b>软硬契约</b>：EXECUTABLE_2_0 的 hardware-software contract + 软件规格 + 软件测试，
+  走与本章完全相同的控制面动作推进；</li>
+  <li><b>GDB 调试</b>与 Workbench 的 Software 页签。</li>
+</ul>
+
+<h2>建议的三个迭代</h2>
+<div class="step">
+  <span class="step-no">迭代 A</span>
+  <h3>软核 Hello World</h3>
+  <p>新意图：例化最小 Sapphire SoC + 串口外设，软件侧打印启动横幅。验收：串口助手看到输出，
+  软件测试在控制面拿到 host 级 PASS 证据。</p>
+</div>
+<div class="step">
+  <span class="step-no">迭代 B</span>
+  <h3>拨码 + 数码管外设化</h3>
+  <p>把 input_ctrl 的拨码通道与 seg_display8 挂到软核总线（寄存器映射）。
+  验收：软件读拨码寄存器、写显示寄存器；本教程的三个 RTL 模块全部变成可编程外设。</p>
+</div>
+<div class="step">
+  <span class="step-no">迭代 C</span>
+  <h3>固化管理</h3>
+  <p>比特流与软件镜像写入 SPI Flash，上电自启动。验收：断电重启后无需主机参与即可运行。</p>
+</div>
+
+<section class="card summary">
+  <h3>结语</h3>
+  <p>回顾这条链：一句话建工程 → 骨架编译体检 → 意图/等级/规格的受管推进 → 候选冻结与真实仿真 →
+  原生编译与约束复验 → 并行增量与隔离 worktree → 集成与最终编译。每一份报告、每一条报错都来自真实运行，
+  它们合起来就是这块板子从零到产品化的最短路径。剩下的，交给你的下一个意图。</p>
+</section>
+<div class="ch-nav"><a href="11-troubleshooting.html">← 上一章</a><a href="index.html">回到目录</a></div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

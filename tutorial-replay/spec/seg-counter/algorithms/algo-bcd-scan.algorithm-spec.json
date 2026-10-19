@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "algorithm",
+  "id": "algo-bcd-scan",
+  "title": "BCD 级联计数 + one-hot 扫描 + 段码查表",
+  "purpose": "用单一时钟域内的两个使能计数器分别产生计数节拍与扫描节拍，BCD 级联保证十进制语义，查表输出段码，避免任何分频时钟与运行时除法。",
+  "principle": "tick_cnt 每 TICK_CYCLES 周期回绕产生 tick；8 个 4 位 BCD 位在 tick 沿做模 10 级联加一。scan_cnt 每 SCAN_CYCLES 周期回绕推进 scan_idx（模 8 one-hot 位选）；每个时钟沿按 scan_idx 取对应 BCD 位查 10 项共阳段码表得到 seg_code_r。",
+  "invalidInputBehavior": "复位有效时输出强制全灭；TICK_CYCLES>=2 与 SCAN_CYCLES>=8 由参数约束保证，计数器总会回绕，不存在未定义状态",
+  "tolerance": "精确——数字逻辑，无数值容差",
+  "inputs": [
+    { "name": "clk_i", "type": "clock-edge", "width": "1" },
+    { "name": "rst_n_i", "type": "async-reset", "width": "1" }
+  ],
+  "outputs": [
+    { "name": "seg_o", "type": "active-low-segment-bus", "width": "8" },
+    { "name": "sel_o", "type": "one-hot-digit-select", "width": "8" }
+  ],
+  "steps": [
+    "每个 clk_i 上升沿：tick_cnt 与 scan_cnt 各自 +1，分别在 TICK_CYCLES-1 / SCAN_CYCLES-1 处回零并置位对应使能脉冲",
+    "tick 脉冲沿：BCD 位 0 加一；某位为 9 时回 0 并让高位加一（级联进位），实现 00,000,000..99,999,999 循环",
+    "scan_tick 脉冲沿：scan_idx = (scan_idx + 1) mod 8，sel_o <= 1 << scan_idx（one-hot 高有效）",
+    "每个 clk_i 上升沿：seg_code_r <= SEG_TABLE[bcd_digits[scan_idx]]（10 项常量查表，低有效段码，dp 恒灭）"
+  ],
+  "equations": [
+    "tick = (tick_cnt == TICK_CYCLES-1)",
+    "scan_tick = (scan_cnt == SCAN_CYCLES-1)",
+    "bcd_next[i] = tick ? (bcd[i]==9 ? 0 : bcd[i]+1) : bcd[i]，进位链 c[i+1] = tick && bcd[i]==9 && c[i]",
+    "sel_next = 1'b1 << ((scan_idx + 1) mod 8)",
+    "seg_o = SEG_TABLE[bcd_digits[scan_idx]]，SEG_TABLE = {C0,F9,A4,B0,99,92,82,F8,80,90}"
+  ],
+  "boundaries": [
+    "99,999,999 的下一拍回绕到 00,000,000（最高位 9→0 且无越位进位残留）",
+    "scan_idx 7 的下一拍回到 0（one-hot 回绕）",
+    "复位断言为异步，释放经 rst_sync 三级同步链；复位期间 seg_o=8'hFF、sel_o=8'h00"
+  ],
+  "numericPolicy": {
+    "overflow": "wrap",
+    "truncation": "none",
+    "binaryPoint": 0,
+    "intermediateWidth": "32"
+  },
+  "latencyCycles": 0,
+  "initiationIntervalCycles": 1,
+  "referenceModel": {
+    "language": "python",
+    "expression": "count = (t // TICK_CYCLES) % 100000000; digits = [(count // 10**i) % 10 for i in range(8)]; sel = 1 << ((t // SCAN_CYCLES) % 8); seg = SEG_TABLE[digits[(t // SCAN_CYCLES) % 8]]"
+  }
+}

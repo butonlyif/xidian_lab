@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "decisions",
+  "items": [
+    {
+      "id": "DEC-101",
+      "status": "ACCEPTED",
+      "question": "数码管驱动极性？",
+      "decision": "共阴默认：位选低有效（DIG_ACTIVE_LOW=1）、段高点亮（SEG_ACTIVE_HIGH=1），双参数化",
+      "reason": "板卡资料（pinout/hardware.yaml/文档）未标注 FJ3461AH 经 RN9/RN11 的接法；用户选定共阴默认；参数化使板上验证不符时无需改逻辑即可翻转"
+    },
+    {
+      "id": "DEC-102",
+      "status": "ACCEPTED",
+      "question": "计数显示格式与回绕？",
+      "decision": "8 位十进制、前导零消隐（全零仅最低位显示 0），0..99,999,999 回绕，BUT1 复位归零",
+      "reason": "用户选定；消隐避免 00000000 视觉噪声"
+    },
+    {
+      "id": "DEC-103",
+      "status": "ACCEPTED",
+      "question": "基线代码如何处理？",
+      "decision": "led_marquee.sv 逐字节复用基线（REUSE_UNCHANGED）；top.v 扩展端口与例化；SDC 不变；ISF 仅追加 16 个数码管管脚",
+      "reason": "增量语义：只带增量文件与有意修改的基线文件（top/tb/ISF/XML），基线核心零变更降低回归面"
+    },
+    {
+      "id": "DEC-104",
+      "status": "ACCEPTED",
+      "question": "节拍与扫描参数？",
+      "decision": "TICK_CYCLES=50_000_000（1 Hz 计数）、SCAN_CYCLES=6250（每位 125 µs，整屏 1 kHz 刷新）；仿真均提速为 4/2",
+      "reason": "50 MHz 单时钟 clock-enable 实现，无派生时钟；1 kHz 刷新远离人眼闪烁阈"
+    },
+    {
+      "id": "DEC-105",
+      "status": "ACCEPTED",
+      "question": "仿真等级？",
+      "decision": "FPGA_FUNCTIONAL（服务端推荐，用户确认）",
+      "reason": "风险事实与基线相同：单时钟域，无新增 CDC/FIFO/背压/协议因子；核心 2（reset+main-flow）+ 边界 1（wrap）+ 冒烟 1，预算内"
+    },
+    {
+      "id": "DEC-106",
+      "status": "ACCEPTED",
+      "question": "数码管位序假设？",
+      "decision": "dig_o[0]=seg_sel1 视为最低位（最右）；若板上相反，交换位选映射即可",
+      "reason": "板卡资料未标注 sel1-sel8 的物理左右顺序；软件语义自洽，板上验证时确认"
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 09 章 · 增量二：按键拨码</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="09">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 09</div>
+  <h1>增量二：按键消抖与拨码采样</h1>
+  <p class="sub">第二个并行意图：两级同步 + 20 ms 稳定计数，「19 拒 20 收」的阈值边界。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>完成 <code>btn-switch</code> 意图全链：BUT2/3/4 按键消抖出单周期脉冲，10 位拨码两级同步直采；
+  testbench 用「毛刺三连」验证阈值边界的精确性。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>意图与等级（流程已熟）</h3>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>再加个输入功能：三个按键按下去要防抖，别按一下当成好几下；十个拨码开关能读个状态就行，也用那套流程。</pre>
+    </div>
+    <div class="status-line ok">✓ 意图建立 · 推荐 FPGA_FUNCTIONAL</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 控制面返回</summary>
+      <div class="body">
+        <p>控制面给出第二个 worktree（<code>codex/intent-btn-switch</code>）。
+        风险事实同基线（单时钟、板级异步输入经同步器），推荐仍是 <b>FPGA_FUNCTIONAL</b>。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 按键为什么需要消抖</summary>
+      <div class="body">
+        <p>机械按键按下瞬间触点会弹跳，电平在几毫秒内反复翻转，直接采样会把一次按压数成好几次。
+        消抖的做法：检测到电平变化后启动稳定计数，只有保持够久（本章阈值 100 万拍 = 20 ms@50MHz）才接受新电平，
+        并在接受拍发<b>恰好一个</b>单周期脉冲。</p>
+        <p>板级异步输入进时钟域之前还要先过两级同步器防亚稳态——这就是 REQ-3 的来源。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>规格要点：把「边界」写成可判定的条款</h3>
+    <p class="why">这一步在做什么：消抖的语义核心是阈值——低电平保持「少于阈值」不触发、「达到阈值」触发。
+    这两条必须分别成为需求与场景，否则仿真无法证明边界正确。</p>
+    <table>
+      <tr><th>条款</th><th>内容</th></tr>
+      <tr><td>REQ-1</td><td>稳定保持 DEBOUNCE_CYCLES（默认 100 万拍 = 20 ms@50MHz）后，在达成拍产生<b>恰好一个</b>单周期脉冲</td></tr>
+      <tr><td>REQ-2</td><td>持续低电平<b>小于</b>阈值的毛刺零脉冲——含「阈值−1 拍」这个最长拒判毛刺</td></tr>
+      <tr><td>REQ-3</td><td>拨码每位经 2 级同步后第 2 拍起跟随，10 位全覆盖</td></tr>
+      <tr><td>REQ-4</td><td>复位期间脉冲与拨码输出全零</td></tr>
+    </table>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · mat-board-io 新形态</summary>
+      <div class="body">
+        <p>材料契约这里出现一个新形态：<code>mat-board-io</code> 描述「顶层将把按键/拨码管脚扇出为总线」，
+        端口方向是 output（逻辑视图），用来承接模块的两个 data 输入——这样系统连接
+        <code>u_stage0_top.btn_bus_o → u_input_ctrl.btn_i</code> 就能满足控制面的方向/宽度/连接性检查。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 为什么「阈值−1」也要测</summary>
+      <div class="body">
+        <p>阈值条款最怕「差一」错误：计数器多比一拍或少比一拍，边界行为就整个反了。
+        把「阈值−1 拍」（最长应拒判的毛刺）和「恰阈值」各写成一个场景，
+        仿真才能证明分界线不偏不倚——这就是「19 拒 20 收」的由来。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>RTL：两级同步 + 稳定计数 + 按下沿脉冲</h3>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k">// 消抖核心（V2001 兼容；词法安全写法）</span>
+(* ASYNC_REG = "TRUE" *) reg [NUM_BTNS-1:0] btn_sync1, btn_sync2;   <span class="k">// 两级同步链</span>
+wire differ   = (btn_sync2 != btn_stable);        <span class="k">// 与已接受电平比较</span>
+wire deb_done = (db_cnt == (DEBOUNCE_CYCLES - 1));
+wire accept   = differ && deb_done;               <span class="k">// 拆成两行：避免 differ db_cnt ( 的词法邻接</span>
+wire [NUM_BTNS-1:0] press_edge = btn_stable & ~btn_sync2;
+...
+pulse_r &lt;= accept ? press_edge : {NUM_BTNS{1'b0}}; <span class="k">// 仅"释放→按下"的接受拍出脉冲</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span><code>accept</code> 被刻意拆成两行、<code>press_edge</code> 用了中间线——
+    都是为了躲开词法器的「词法邻接」陷阱，报错原文与修法见右栏修复卡。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 词法邻接陷阱</summary>
+      <div class="body">
+        <p><code>accept</code> 那行——第一次写成单行 <code>differ && db_cnt == (N-1)</code>，
+        词法器把比较括号贴给 <code>db_cnt</code>，报了：</p>
+        <pre><span class="r">referenced missing module differ</span></pre>
+        <p><b>修法：</b>把比较拆成 <code>deb_done</code> 单独一行，<code>accept = differ && deb_done</code> 成两行，
+        避免词法邻接；<code>press_edge</code> 中间线也是为了躲开三元表达式里的 <code>accept ? (</code> 邻接。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 两级同步器</summary>
+      <div class="body">
+        <p><code>btn_sync1 → btn_sync2</code> 两级触发器带 <code>(* ASYNC_REG = "TRUE" *)</code> 属性，
+        让异步按键电平在被消抖计数逻辑使用之前先对齐系统时钟——第一级可能进入亚稳态，第二级输出基本稳定。
+        没有这两拍，后面的稳定计数毫无意义；拨码通道的 REQ-3 用的也是同一招。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>testbench：毛刺三连与阈值精确性</h3>
+    <p class="why">这一步在做什么：把 REQ-2 的边界语义做成三类激励（短、中、阈值−1），再跟一次「恰阈值」按压证明分界线不偏不倚。</p>
+    <div class="codeblock"><pre>DEB = 20（提速参数；上板默认 1_000_000）
+glitch(btn0, 3)    <span class="k">// 短毛刺 3 拍       → 0 脉冲</span>
+glitch(btn1, 2)    <span class="k">// 中毛刺 DEB/10    → 0 脉冲</span>
+glitch(btn2, 19)   <span class="k">// 边界毛刺 DEB-1   → 0 脉冲   ← 阈值左侧</span>
+press (btn2, 20)   <span class="k">// 恰阈值按压        → 1 脉冲   ← 阈值右侧</span></pre></div>
+    <div class="codeblock"><pre><span class="g">TB-RESULT.PASS (pulses=4 sw_events=10)      <span class="k"># 3 次按压 + 1 次阈值按压 = 4 脉冲；10 位拨码全跟随</span></span>
+<span class="g">evidence sim-451599546e34 → module:input_ctrl QUALIFIED → FEATURE_MERGE QUEUED（队列位 1）</span></pre></div>
+    <div class="status-line ok">✓ TB-RESULT.PASS · 证据 sim-451599546e34</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 仿真证据</summary>
+      <div class="body">
+        <p>证据 <code>sim-451599546e34</code> → module:input_ctrl <b>QUALIFIED</b> →
+        FEATURE_MERGE <b>QUEUED</b>（队列位 1）。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 提速参数 DEB 怎么读</summary>
+      <div class="body">
+        <p>上板默认 DEBOUNCE_CYCLES = 1_000_000（100 万拍 = 20 ms@50MHz），仿真等比缩成 DEB = 20：
+        短毛刺 3 拍、中毛刺 DEB/10 = 2 拍、边界毛刺 DEB−1 = 19 拍（阈值左侧最长拒判）、
+        恰阈值按压 20 拍（阈值右侧）。四条激励把「19 拒 20 收」钉死，比例语义与上板完全一致。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>一个值得记住的控制面行为</h3>
+    <div class="story">
+      <span class="tag">翻车实录</span>两个意图的规格先后 APPROVED 后，先仿真 btn-switch 一切顺利；
+      轮到 seg-counter 却报 <code>SPEC_IDENTITY_MISMATCH</code>。对 seg 的密封包重走一次
+      <code>spec.draft + spec.approve</code> 后仿真通过——根因见右栏。
+    </div>
+    <div class="status-line warn">⚠ 多意图并行时「当前生效规格」只认最新一条 APPROVED</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · SPEC_IDENTITY_MISMATCH</summary>
+      <div class="body">
+        <p>报错原文：</p>
+        <pre><span class="r">SPEC_IDENTITY_MISMATCH: digest does not match the requested specDigest</span></pre>
+        <p><b>修法：</b>对 seg 的密封包再走一次 <code>spec.draft + spec.approve</code>
+        （产生同 digest 的 SPEC-004 成为最新），然后仿真通过。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 解析顺序只认最新</summary>
+      <div class="body">
+        <p><code>verification.simulate</code> 在解析「当前生效规格」时只认<b>最新一条 APPROVED</b> 记录——
+        先仿真 btn-switch 一切顺利只是因为它恰是最新。这类「多意图并行时的解析顺序」行为已如实记录在第 11 章手册里。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<div class="card watch-card">
+  <div class="tag">👀 观察文件</div>
+  <p>本章新增 <code>rtl/input_ctrl.sv</code>、<code>sim/tb_input_ctrl.sv</code>、<code>spec/btn-switch/</code>；
+  btn 分支上的声明文件提交实测为 3c6e43a。两个集成队列位就绪，等第 10 章合流。</p>
+</div>
+
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>两个并行增量都完成全链并进入集成队列。第 10 章做最后的合流：顶层例化三个模块、
+  ISF 一次性扩到 42 个管脚、最终编译与资源报告解读。</p>
+</section>
+<div class="ch-nav"><a href="08-increment-seg.html">← 上一章</a><a href="10-integration.html">下一章：三模块集成 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

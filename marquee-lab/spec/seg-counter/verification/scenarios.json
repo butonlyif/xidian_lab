@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "scenarios",
+  "items": [
+    {
+      "id": "SCN-RESET",
+      "moduleId": "seg_display8",
+      "verificationRole": "reset",
+      "preconditions": [
+        "上电，时钟自由运行",
+        "rst_n_i 保持为 0"
+      ],
+      "stimulus": [
+        "保持 rst_n_i=0 若干时钟周期，期间逐周期采样 seg_o 与 sel_o",
+        "释放 rst_n_i 后再运行若干扫描周期"
+      ],
+      "endCondition": "复位期间 seg_o==8'hFF 且 sel_o==8'h00 成立；释放后一个扫描周期内出现正常扫描输出"
+    },
+    {
+      "id": "SCN-COUNT",
+      "moduleId": "seg_display8",
+      "verificationRole": "main-flow",
+      "preconditions": [
+        "复位已释放",
+        "50 MHz 时钟自由运行（仿真用缩小的 TICK_CYCLES/SCAN_CYCLES）"
+      ],
+      "stimulus": [
+        "连续运行足够覆盖多位 BCD 递增与多轮扫描的时钟周期",
+        "在每个 negedge 采样 BCD 值、sel_o 与 seg_o"
+      ],
+      "endCondition": "观察到 BCD 计数逐 tick 加一、位选按节拍循环且段码与表一致"
+    },
+    {
+      "id": "SCN-WRAP",
+      "moduleId": "seg_display8",
+      "verificationRole": "critical-boundary",
+      "preconditions": [
+        "复位已释放",
+        "BCD 计数被预置或推进到 99,999,999（仿真用极小 TICK_CYCLES）",
+        "scan_idx 推进到 7"
+      ],
+      "stimulus": [
+        "在 99,999,999→00,000,000 回绕沿与 scan_idx 7→0 回绕沿前后逐周期检查",
+        "检查回绕沿恰好只加一次且无越位进位残留"
+      ],
+      "endCondition": "计数回绕后 BCD 值为全零、扫描位序回到 0，无重复步进或丢步"
+    },
+    {
+      "id": "SCN-SMOKE",
+      "moduleId": "seg_display8",
+      "verificationRole": "integration-smoke",
+      "preconditions": [
+        "testbench 直接例化 seg_display8（集成路径冒烟：模块可被外部例化并观察全部端口）"
+      ],
+      "stimulus": [
+        "对模块施加复位脉冲后自由运行少量扫描周期",
+        "观察 seg_o/sel_o 端口行为"
+      ],
+      "endCondition": "端口在复位后呈现稳定扫描序列，无 X/Z"
+    }
+  ]
+}

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<efxpt:design_db name="tutorial-replay" device_def="T20F256" version="2026.1.132.1.15" db_version="20261009" last_change_date="Fri Oct 16 15:41:43 2026" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
+    <efxpt:device_info>
+        <efxpt:iobank_info>
+            <efxpt:iobank name="1A" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="1B_1C" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="1D_1E" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="3A_3B_3C" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="3D_3E" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="4A" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="4B" iostd="3.3 V LVTTL / LVCMOS"/>
+            <efxpt:iobank name="BR" iostd="1.2 V"/>
+            <efxpt:iobank name="TL" iostd="1.2 V"/>
+            <efxpt:iobank name="TR" iostd="1.2 V"/>
+        </efxpt:iobank_info>
+        <efxpt:ctrl_info>
+            <efxpt:ctrl name="cfg" ctrl_def="CONFIG_CTRL0" clock_name="" is_clk_invert="false" cbsel_bus_name="cfg_CBSEL" config_ctrl_name="cfg_CONFIG" ena_capture_name="cfg_ENA" error_status_name="cfg_ERROR" um_signal_status_name="cfg_USR_STATUS" is_remote_update_enable="false" is_user_mode_enable="false"/>
+        </efxpt:ctrl_info>
+    </efxpt:device_info>
+    <efxpt:gpio_info device_def="T20F256">
+        <efxpt:gpio name="arst_n" gpio_def="GPIOL_59" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="arst_n"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="arst_n" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="buzzer" gpio_def="GPIOB_TXP03" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="buzzer"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="buzzer" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="clk_50m" gpio_def="GPIOR_125" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="CONN_TYPE" value="GCLK"/>
+                <efxpt:netlist_parameter name="IN_PIN" value="clk_50m"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="clk_50m" name_ddio_lo="" conn_type="gclk" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw1" gpio_def="GPIOR_98" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw1"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw1" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw10" gpio_def="GPIOR_82" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw10"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw10" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw2" gpio_def="GPIOR_94" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw2"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw2" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw3" gpio_def="GPIOR_92" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw3"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw3" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw4" gpio_def="GPIOR_90" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw4"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw4" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw5" gpio_def="GPIOR_97" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw5"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw5" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw6" gpio_def="GPIOR_95" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw6"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw6" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw7" gpio_def="GPIOR_93" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw7"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw7" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw8" gpio_def="GPIOR_84" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw8"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw8" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="dip_sw9" gpio_def="GPIOR_83" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="dip_sw9"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="dip_sw9" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user" gpio_def="GPIOB_TXP10" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user10" gpio_def="GPIOB_RXN11" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user10"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user10" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user2" gpio_def="GPIOB_RXP02" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user2"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user2" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user3" gpio_def="GPIOB_RXN02" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user3"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user3" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user4" gpio_def="GPIOB_RXP04" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user4"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user4" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user5" gpio_def="GPIOB_RXP07" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user5"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user5" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user6" gpio_def="GPIOB_RXP08" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user6"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user6" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user7" gpio_def="GPIOB_RXP09" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user7"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user7" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user8" gpio_def="GPIOB_RXN09" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user8"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user8" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="led_user9" gpio_def="GPIOB_RXP11" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="led_user9"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="led_user9" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_a" gpio_def="GPIOL_58" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_a"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_a" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_b" gpio_def="GPIOL_67" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_b"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_b" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_c" gpio_def="GPIOL_63" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_c"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_c" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_d" gpio_def="GPIOL_72" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_d"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_d" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_dp" gpio_def="GPIOL_70" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_dp"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_dp" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_e" gpio_def="GPIOR_78" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_e"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_e" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_f" gpio_def="GPIOL_64" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_f"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_f" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_g" gpio_def="GPIOL_61" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_g"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_g" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel1" gpio_def="GPIOR_79" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel1"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel1" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel2" gpio_def="GPIOR_81" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel2"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel2" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel3" gpio_def="GPIOR_86" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel3"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel3" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel4" gpio_def="GPIOR_76" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel4"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel4" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel5" gpio_def="GPIOR_85" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel5"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel5" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel6" gpio_def="GPIOR_99" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel6"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel6" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel7" gpio_def="GPIOR_102" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel7"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel7" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="seg_sel8" gpio_def="GPIOR_80" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="OUT_PIN" value="seg_sel8"/>
+                <efxpt:netlist_parameter name="OUT_REG" value="BYPASS"/>
+            </efxpt:netlist_config>
+            <efxpt:output_config name="seg_sel8" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="user_btn2" gpio_def="GPIOL_53" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="user_btn2"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="user_btn2" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="user_btn3" gpio_def="GPIOL_57" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="user_btn3"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="user_btn3" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:gpio name="user_btn4" gpio_def="GPIOL_50" mode="input" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
+            <efxpt:netlist_config netlist_checksum="tutorial-replay.peri.db">
+                <efxpt:netlist_parameter name="IN_PIN" value="user_btn4"/>
+                <efxpt:netlist_parameter name="IN_REG" value="BYPASS"/>
+                <efxpt:netlist_parameter name="PULL_OPTION" value="NONE"/>
+            </efxpt:netlist_config>
+            <efxpt:input_config name="user_btn4" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none"/>
+        </efxpt:gpio>
+        <efxpt:global_unused_config state="input with weak pullup"/>
+    </efxpt:gpio_info>
+    <efxpt:pll_info/>
+    <efxpt:lvds_info/>
+    <efxpt:jtag_info/>
+    <efxpt:partial_design source="tutorial-replay.peri.db"/>
+</efxpt:design_db>

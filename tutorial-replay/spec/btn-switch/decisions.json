@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "decisions",
+  "items": [
+    {
+      "id": "DEC-BTN-LOW-ACTIVE",
+      "title": "按键低有效（板载上拉）",
+      "decision": "btn_i 低电平表示按下；同步链与稳定电平初值取释放态（全 1）",
+      "rationale": "BUT2/3/4 原理图带 3.3 V 上拉，按下接地；释放态初值避免复位释放产生虚假脉冲",
+      "alternatives": "高有效按键（需在顶层取反）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-SW-POSITIVE",
+      "title": "拨码上拨为 1",
+      "decision": "sw_i 上拨（ON）= 逻辑 1，直采不做取反",
+      "rationale": "SS-12F44 拨码公共端接地、上拉到 3.3 V 的常规接法；若实测相反在顶层取反",
+      "alternatives": "下拨为 1（若实测相反）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-DEB-20MS",
+      "title": "消抖阈值 20 ms",
+      "decision": "DEBOUNCE_CYCLES 默认 1,000,000（50 MHz 下 20 ms）",
+      "rationale": "机械按键抖动通常在 5..10 ms 内收敛，20 ms 留足裕量且人手按压最短约 100 ms 不会漏判",
+      "alternatives": "10 ms（更快响应但裕量小）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-SYNC-ONLY",
+      "title": "拨码只同步不消抖",
+      "decision": "拨码路径仅 2 级同步，无稳定计数",
+      "rationale": "拨码由人手切换、机械抖动窗口内电平语义本就允许中间态，且教程场景只用电平语义；省 10 套计数器面积",
+      "alternatives": "拨码同样消抖（更稳但面积×10）",
+      "status": "ACCEPTED"
+    }
+  ]
+}

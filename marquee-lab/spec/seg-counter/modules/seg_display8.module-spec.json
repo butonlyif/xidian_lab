@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "module",
+  "id": "seg_display8",
+  "moduleName": "seg_display8",
+  "title": "8 位数码管 BCD 扫描计数器",
+  "purpose": "自由运行的十进制计数显示控制器：单一时钟域内用时钟使能产生 1 Hz 计数节拍与 1 kHz 扫描节拍，BCD 级联计数经段码查表与 one-hot 位选扫描输出到 2 片 FJ3461AH。",
+  "responsibilities": [
+    "在 clk_i 域内按 TICK_CYCLES 周期对 8 位 BCD 级联计数器加一（模 10 逐位进位）",
+    "按 SCAN_CYCLES 周期循环选通 8 个数位之一（one-hot 高有效）",
+    "把选通位的 BCD 值译码为低有效段码输出",
+    "复位期间段全灭、位选全零"
+  ],
+  "nonResponsibilities": [
+    "不负责数码管管脚电气属性（IO_STANDARD、bank 电压由 ISF 约束管理）",
+    "不负责亮度控制（无 PWM）",
+    "不接收任何外部数据输入（自由计数）"
+  ],
+  "parameters": [
+    {
+      "name": "TICK_CYCLES",
+      "type": "integer",
+      "default": 50000000,
+      "constraints": ["TICK_CYCLES >= 2", "50_000_000 / TICK_CYCLES = 计数频率 Hz（默认 1 Hz）"],
+      "behavioralEffect": "每个数位的保持时长：计数每 TICK_CYCLES 个时钟周期加一；仿真用小值提速"
+    },
+    {
+      "name": "SCAN_CYCLES",
+      "type": "integer",
+      "default": 50000,
+      "constraints": ["SCAN_CYCLES >= 8", "50_000_000 / (8*SCAN_CYCLES) = 全帧刷新率 Hz（默认 125 Hz）"],
+      "behavioralEffect": "单个数位的选通时长；过小会引起闪烁、过大会闪烁可见，默认每位 1 ms"
+    }
+  ],
+  "ports": [
+    {
+      "name": "clk_i",
+      "direction": "input",
+      "type": "clock",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "rst_n_i",
+      "direction": "input",
+      "type": "async-reset-active-low",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "seg_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "8",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data",
+      "idleValue": "复位期间 8'hFF（低有效段全灭）"
+    },
+    {
+      "name": "sel_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "8",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data",
+      "idleValue": "复位期间 8'h00（无任何位选通）"
+    }
+  ],
+  "dataObjects": [
+    {
+      "name": "tick_cnt",
+      "role": "计数节拍分频计数器（clock enable 源）",
+      "width": "clog2(TICK_CYCLES)",
+      "resetValue": "0",
+      "updateCondition": "每个 clk_i 上升沿 +1，达到 TICK_CYCLES-1 时回零并产生 tick 脉冲",
+      "ownership": "owned"
+    },
+    {
+      "name": "scan_cnt",
+      "role": "扫描节拍分频计数器",
+      "width": "clog2(SCAN_CYCLES)",
+      "resetValue": "0",
+      "updateCondition": "每个 clk_i 上升沿 +1，达到 SCAN_CYCLES-1 时回零并产生 scan_tick 脉冲",
+      "ownership": "owned"
+    },
+    {
+      "name": "scan_idx",
+      "role": "当前选通数位索引（0..7）",
+      "width": "3",
+      "resetValue": "0",
+      "updateCondition": "scan_tick 脉冲沿 +1（模 8）",
+      "ownership": "owned"
+    },
+    {
+      "name": "bcd_digits",
+      "role": "8 位 BCD 级联计数器（digit0 最低位，每位模 10 进位）",
+      "width": "32",
+      "resetValue": "0",
+      "updateCondition": "tick 脉冲沿最低位 +1，某位为 9 时回 0 并向高位进位",
+      "ownership": "owned"
+    },
+    {
+      "name": "seg_code_r",
+      "role": "段码输出寄存器（查表结果寄存）",
+      "width": "8",
+      "resetValue": "255",
+      "updateCondition": "每个 clk_i 上升沿按 scan_idx 选中的 BCD 位重新查表更新",
+      "ownership": "owned"
+    }
+  ],
+  "behavior": {
+    "latencyCycles": 0,
+    "initiationIntervalCycles": 1,
+    "backpressure": "无——自由运行，无 valid/ready 握手",
+    "errors": "无错误通路；复位有效期间输出恒为全灭/全零"
+  },
+  "algorithmIds": ["algo-bcd-scan"],
+  "requirementIds": ["REQ-1", "REQ-2", "REQ-3", "REQ-4"],
+  "propertyIds": ["PROP-COUNT-INC", "PROP-RESET-BLANK", "PROP-SCAN-HOLD", "PROP-SEG-DECODE"]
+}

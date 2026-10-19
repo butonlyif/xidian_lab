@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "executable-system",
+  "specId": "marquee-lab-seg-counter",
+  "revision": "1.0.0",
+  "title": "8 位数码管扫描计数器（seg-counter）",
+  "purpose": "在 marquee-baseline 基线之上建立第一个并行增量：驱动板上 2 片 FJ3461AH 数码管的 8 位十进制扫描计数器，每秒加一显示 00,000,000 到 99,999,999。全部逻辑运行在单一 50 MHz 时钟域，复位采用异步断言、同步释放，与基线共用时钟域与复位域。",
+  "assurance": {
+    "rulePacks": ["rtl-baseline@1"],
+    "contracts": [],
+    "exceptions": []
+  },
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "statement": "复位释放后，8 位 BCD 级联十进制计数器从 00,000,000 起每 TICK_CYCLES 个 50 MHz 时钟周期（默认 50,000,000，即 1 秒）加一，到 99,999,999 后回绕到 00,000,000。",
+      "acceptance": "仿真（缩小 TICK_CYCLES）中观察到每个 tick 沿 BCD 计数值加一，最高位 9→0 时向低位无残留进位。"
+    },
+    {
+      "id": "REQ-2",
+      "statement": "复位有效（rst_n_i 拉低）期间数码管全灭：段输出 seg_o=8'hFF（低有效全灭）且位选 sel_o=8'h00（无任何位选通）。",
+      "acceptance": "arst_n==0 的每个采样点 seg_o==8'hFF 且 sel_o==8'h00。"
+    },
+    {
+      "id": "REQ-3",
+      "statement": "位选扫描以 SCAN_CYCLES 个时钟周期（默认 50,000，即每位 1 ms）为节拍循环选通第 0..7 位，任一时刻恰有一位为高（one-hot），全帧刷新率 125 Hz。",
+      "acceptance": "每个采样点 sel_o 恰一位为 1；相邻选通变化间隔恰 SCAN_CYCLES 个周期；位序 0→1→…→7→0 循环。"
+    },
+    {
+      "id": "REQ-4",
+      "statement": "段输出 seg_o 为当前选通位 BCD 值的低有效段码（位序 {dp,g,f,e,d,c,b,a}，0→8'hC0 … 9→8'h90，dp 恒灭）。",
+      "acceptance": "扫描稳定窗口内对全部 10 个数字逐项核对 seg_o 与标准共阳段码表一致。"
+    }
+  ],
+  "instances": [
+    {
+      "id": "u_seg_display8",
+      "title": "数码管扫描计数器 seg_display8",
+      "level": "module",
+      "contractKind": "module",
+      "contractId": "seg_display8"
+    }
+  ],
+  "connections": [],
+  "clockDomains": [
+    {
+      "id": "clk_50m",
+      "frequencyHz": 50000000
+    }
+  ],
+  "resetDomains": [
+    {
+      "id": "rst_sys",
+      "clockDomain": "clk_50m",
+      "polarity": "active-low",
+      "assertion": "asynchronous",
+      "release": "3-stage synchronizer"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "scenarios",
+  "items": [
+    {
+      "id": "SCN-RESET",
+      "moduleId": "marquee10",
+      "verificationRole": "reset",
+      "preconditions": [
+        "上电，时钟自由运行",
+        "arst_n 保持为 0"
+      ],
+      "stimulus": [
+        "保持 arst_n=0 若干时钟周期，期间逐周期采样 led_bus_o",
+        "释放 arst_n（拉高），再运行若干周期"
+      ],
+      "endCondition": "复位期间 led_bus_o==0 成立，释放后一个周期内出现初始 one-hot 码型"
+    },
+    {
+      "id": "SCN-MAINFLOW",
+      "moduleId": "marquee10",
+      "verificationRole": "main-flow",
+      "preconditions": [
+        "复位已释放",
+        "50 MHz 时钟自由运行"
+      ],
+      "stimulus": [
+        "连续运行 >= (NUM_LEDS+2)*STEP_CYCLES 个时钟周期（仿真中使用缩小后的 STEP_CYCLES 以控制时长）"
+      ],
+      "endCondition": "观察到点亮位完成至少一个完整的 0→1→…→9→0 环"
+    },
+    {
+      "id": "SCN-BOUNDARY",
+      "moduleId": "marquee10",
+      "verificationRole": "critical-boundary",
+      "preconditions": [
+        "复位已释放",
+        "step_cnt 接近 STEP_CYCLES-1"
+      ],
+      "stimulus": [
+        "在 step_cnt==STEP_CYCLES-1 边界前后逐周期检查：回绕前 led_bus_o 保持、回绕沿恰好步进一次"
+      ],
+      "endCondition": "相邻两次步进之间恰好间隔 STEP_CYCLES 个周期，边界无重复步进或丢步"
+    },
+    {
+      "id": "SCN-SMOKE",
+      "moduleId": "marquee10",
+      "verificationRole": "integration-smoke",
+      "preconditions": [
+        "顶层已例化 u_marquee 并把 10 位灯总线映射到 led_user..led_user10"
+      ],
+      "stimulus": [
+        "对顶层施加 clk_50m 与 arst_n 复位脉冲",
+        "释放复位后运行少量步进周期"
+      ],
+      "endCondition": "顶层 10 个 LED 输出端口整体呈现 one-hot 序列且随步进推进"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "traceability",
+  "items": [
+    {
+      "requirementId": "REQ-001",
+      "moduleIds": ["marquee-core"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-001"],
+      "oracleIds": ["ORC-001"],
+      "propertyIds": ["PROP-001"],
+      "coverageIds": []
+    },
+    {
+      "requirementId": "REQ-002",
+      "moduleIds": ["marquee-core"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-002"],
+      "oracleIds": ["ORC-002"],
+      "propertyIds": ["PROP-002"],
+      "coverageIds": ["COV-001"]
+    },
+    {
+      "requirementId": "REQ-003",
+      "moduleIds": ["marquee-core"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-003"],
+      "oracleIds": ["ORC-003"],
+      "propertyIds": ["PROP-003"],
+      "coverageIds": []
+    },
+    {
+      "requirementId": "REQ-004",
+      "moduleIds": ["marquee-core"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-004"],
+      "oracleIds": ["ORC-004"],
+      "propertyIds": [],
+      "coverageIds": ["COV-001"]
+    }
+  ]
+}

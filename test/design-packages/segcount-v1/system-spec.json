@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "executable-system",
+  "specId": "segcount-v1",
+  "revision": "1",
+  "title": "marquee-lab 增量 segcount v1 -- 8 位数码管每秒 +1 计数显示",
+  "purpose": "在基线 marquee v1（跑马灯，基线摘要 550bb0d5）之上新增数码管计数功能：板上 8 位数码管（2x FJ3461AH，经 RN9/RN11）显示十进制计数，从 0 开始每秒加 1，前导零消隐（全零时仅最右位显示 0），0..99,999,999 回绕，BUT1 复位归零；驱动极性共阴假设（位选低有效、段高点亮，参数化，板上待确认）。基线跑马灯行为保持不变。单时钟域纯同步逻辑。",
+  "requirements": [
+    {
+      "id": "REQ-101",
+      "statement": "复位行为：arst_n_i 低有效异步复位；同步释放后计数值为 0（BCD 全零，显示层消隐为单个 0），节拍与扫描计数器清零。",
+      "acceptance": "同步释放后首个采样 bcd_r == 0；扫描/节拍计数器归零；输出无 X。"
+    },
+    {
+      "id": "REQ-102",
+      "statement": "计数主流程：每个 TICK_CYCLES（50 MHz / 50_000_000 = 1 Hz）计数值加一，BCD 进位链正确（9→10 等）；生产参数 8 位显示，仿真提速 TICK_CYCLES=4。",
+      "acceptance": "仿真中每次值变化严格等于期望值 +1（期望模型为十进制转 BCD）；连续 ≥12 次递增覆盖段图案 0-9 与进位。"
+    },
+    {
+      "id": "REQ-103",
+      "statement": "回绕边界：计数值到达位宽上限（10^DIGITS - 1）后下一次递增回绕到 0；用 DIGITS=2 旁证实例验证 99→00。",
+      "acceptance": "旁证实例观察到 ≥2 次 99→00 回绕且回绕后从 0 重新递增。"
+    },
+    {
+      "id": "REQ-104",
+      "statement": "显示扫描与集成：位选 one-hot（共阴低有效）按 SCAN_CYCLES（6250 → 1 kHz 刷新）轮转；段输出为当前位 BCD 的 0-9 译码（bit0..6=a..g，bit7=dp 熄灭）；前导零消隐；与基线跑马灯在同顶层共存（跑马灯 8 Hz one-hot 保持）。",
+      "acceptance": "仿真中每次扫描位切换时：dig == ~(one-hot<<idx)，seg == 消隐期望或译码期望；跑马灯四性质自检通过；联合仿真正常结束无 X。"
+    }
+  ],
+  "instances": [
+    {
+      "id": "u_seg",
+      "contractKind": "module",
+      "contractId": "segcount-display",
+      "title": "数码管十进制计数显示核",
+      "level": "module"
+    },
+    {
+      "id": "u_marquee",
+      "contractKind": "material",
+      "contractId": "marquee-baseline-led",
+      "title": "基线跑马灯核心（复用不改）",
+      "level": "module",
+      "materialStatus": "REUSE_UNCHANGED"
+    }
+  ],
+  "connections": [],
+  "clockDomains": [
+    {
+      "id": "clk_50m",
+      "frequencyHz": 50000000
+    }
+  ],
+  "resetDomains": [
+    {
+      "id": "rst_board_n",
+      "clockDomain": "clk_50m",
+      "polarity": "active-low",
+      "assertion": "异步断言（板上按键 BUT1，arst_n_i@A4）",
+      "release": "同步释放：各核内 3 级同步器，域内独立"
+    }
+  ],
+  "assurance": {
+    "rulePacks": ["rtl-baseline@1"],
+    "contracts": [],
+    "exceptions": []
+  },
+  "verification": {
+    "scenarioIds": ["SCEN-101", "SCEN-102", "SCEN-103", "SCEN-104"],
+    "oracleIds": ["ORC-101", "ORC-102", "ORC-103", "ORC-104"],
+    "propertyIds": ["PROP-101", "PROP-102", "PROP-103", "PROP-104"],
+    "coverageIds": ["COV-101"]
+  },
+  "integrationSimulation": {
+    "top": "t20f256_xd_ps_eval_marquee",
+    "sourceManifest": ["rtl/top.v", "rtl/led_marquee.sv", "rtl/seg7_counter.sv"],
+    "testManifest": ["sim/tb_led_marquee.v"],
+    "requiredEventIds": ["PROP-101", "PROP-102", "PROP-103", "PROP-104", "ORC-101", "ORC-102", "ORC-103", "ORC-104", "COV-101"],
+    "timeoutSeconds": 60
+  },
+  "integrationPolicy": {
+    "nativeBuildRequired": true
+  }
+}

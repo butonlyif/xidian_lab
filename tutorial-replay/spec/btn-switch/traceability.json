@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "traceability",
+  "items": [
+    {
+      "requirementId": "REQ-1",
+      "moduleIds": ["input_ctrl"],
+      "algorithmIds": ["algo-debounce-pulse"],
+      "scenarioIds": ["SCN-PRESS"],
+      "oracleIds": ["ORC-PULSE-ONE"],
+      "propertyIds": ["PROP-PULSE-ONE"],
+      "coverageIds": ["COV-BTNS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-2",
+      "moduleIds": ["input_ctrl"],
+      "algorithmIds": ["algo-debounce-pulse"],
+      "scenarioIds": ["SCN-GLITCH"],
+      "oracleIds": ["ORC-GLITCH-SUPPRESS"],
+      "propertyIds": ["PROP-GLITCH-SUPPRESS"],
+      "coverageIds": ["COV-GLITCH-CLASS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-3",
+      "moduleIds": ["input_ctrl"],
+      "algorithmIds": ["algo-debounce-pulse"],
+      "scenarioIds": ["SCN-PRESS"],
+      "oracleIds": ["ORC-SW-SYNC"],
+      "propertyIds": ["PROP-SW-SYNC"],
+      "coverageIds": ["COV-SW-ALL"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-4",
+      "moduleIds": ["input_ctrl"],
+      "algorithmIds": ["algo-debounce-pulse"],
+      "scenarioIds": ["SCN-RESET"],
+      "oracleIds": ["ORC-RESET-ZERO"],
+      "propertyIds": ["PROP-RESET-ZERO"],
+      "coverageIds": ["COV-BTNS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    }
+  ]
+}

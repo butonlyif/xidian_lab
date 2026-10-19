@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "properties",
+  "items": [
+    {
+      "id": "PROP-RESET",
+      "moduleId": "marquee10",
+      "ruleId": "rtl-baseline/reset-zero",
+      "antecedent": "arst_n == 0",
+      "consequent": [
+        "led_bus_o == 0"
+      ],
+      "requiredActivations": 1,
+      "observedSignals": ["arst_n", "led_bus_o"]
+    },
+    {
+      "id": "PROP-ONEHOT",
+      "moduleId": "marquee10",
+      "ruleId": "rtl-baseline/onehot-output",
+      "antecedent": "arst_n == 1（复位释放后每个采样点）",
+      "consequent": [
+        "led_bus_o 恰有一位为 1"
+      ],
+      "requiredActivations": 10,
+      "observedSignals": ["led_bus_o"]
+    },
+    {
+      "id": "PROP-ROTATE",
+      "moduleId": "marquee10",
+      "ruleId": "rtl-baseline/rotate-sequence",
+      "antecedent": "step_cnt 回绕沿（step_en 有效）",
+      "consequent": [
+        "led_bus_o 环形左移一位：pos_next = (pos + 1) % NUM_LEDS"
+      ],
+      "requiredActivations": 10,
+      "observedSignals": ["step_cnt", "led_bus_o"]
+    },
+    {
+      "id": "PROP-HOLD",
+      "moduleId": "marquee10",
+      "ruleId": "rtl-baseline/hold-between-steps",
+      "antecedent": "复位已释放且 step_cnt 未回绕",
+      "consequent": [
+        "led_bus_o 保持不变"
+      ],
+      "requiredActivations": 5,
+      "observedSignals": ["step_cnt", "led_bus_o"]
+    }
+  ]
+}

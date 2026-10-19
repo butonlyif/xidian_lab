@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "coverage",
+  "items": [
+    {
+      "id": "COV-101",
+      "moduleId": "segcount-display",
+      "requirementIds": ["REQ-102", "REQ-104"],
+      "goal": "段图案覆盖：递增 ≥12 次覆盖数字 0-9 全部段图案与一次进位；扫描校验 ≥16 次覆盖 ≥2 个完整扫描循环与消隐位",
+      "bins": ["digit0..digit9", "carry9to10", "scan_idx0..7", "blank-leading", "shown-lsd-zero"],
+      "rule": "FPGA_FUNCTIONAL 下覆盖率为延期证据（非阻塞）；递增与扫描事件按次发射，冒烟窗口顺带满足全部 bin"
+    }
+  ]
+}

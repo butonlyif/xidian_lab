@@ -1,0 +1,16 @@
+# Efinity 编译产物
+**/outflow/
+**/work_syn/
+**/work_pnr/
+
+# 仿真产物
+*.vvp
+**/sim/tb_run.log
+
+# 其他生成日志
+replay-compile.log
+
+# Agent 控制面状态与本地工作树（不纳入版本管理）
+.evoverse/
+.evoverse-worktrees/
+.trae-html-share-packages/

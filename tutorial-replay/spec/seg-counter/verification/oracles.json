@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "oracles",
+  "items": [
+    {
+      "id": "ORC-COUNT-INC",
+      "moduleId": "seg_display8",
+      "definition": "每个 tick 沿 BCD 计数值恰好加一（十进制语义）",
+      "comparison": "把 8×4bit BCD 拼成整数与期望值 (prev+1) mod 100000000 比较",
+      "timingWindow": "每个 tick 使能脉冲沿",
+      "failureCondition": "跳变超过 +1、不变、或出现非 BCD 码（某位 >9）"
+    },
+    {
+      "id": "ORC-RESET-BLANK",
+      "moduleId": "seg_display8",
+      "definition": "复位有效期间数码管全灭",
+      "comparison": "每个采样点检查 seg_o==8'hFF 且 sel_o==8'h00",
+      "timingWindow": "rst_n_i==0 的每个 clk_i 上升沿采样点",
+      "failureCondition": "复位期间任何段被点亮或任何位被选通"
+    },
+    {
+      "id": "ORC-SCAN-ROUND",
+      "moduleId": "seg_display8",
+      "definition": "位选扫描 one-hot、节拍精确、位序循环",
+      "comparison": "sel_o 汉明权重恒为 1；相邻变化间隔恰 SCAN_CYCLES 个周期；位序按 0→1→…→7→0",
+      "timingWindow": "复位释放后的每个采样点及相邻选通变化沿",
+      "failureCondition": "多位同选、漏选、间隔不等于 SCAN_CYCLES 或位序错乱"
+    },
+    {
+      "id": "ORC-SEG-DECODE",
+      "moduleId": "seg_display8",
+      "definition": "段码等于选通位 BCD 值的标准共阳段码",
+      "comparison": "扫描稳定窗口内 seg_o 与 SEG_TABLE[digit[scan_idx]] 逐项比较（覆盖 0..9 全部数字）",
+      "timingWindow": "每个数位选通稳定后的采样点",
+      "failureCondition": "任一数字的段码与表不符"
+    }
+  ]
+}

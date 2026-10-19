@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 05 章 · 候选与仿真</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="05">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 05</div>
+  <h1>候选与仿真</h1>
+  <p class="sub">candidate.deliver → verification.simulate → candidate.promote：候选被冻结、被真跑、被晋级。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>理解「候选」的不可变性（字节冻结 + digest 校验）、testbench 的 <code>EVOVERSE_PROPERTY</code> 事件协议，
+  以及 promote 之后基线长什么样。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>冻结候选（candidate.deliver）</h3>
+    <p class="why">这一步在做什么：控制面把候选文件的字节读走、算 digest、存进不可变的 run 目录——从这一刻起，改一个字节都会被识破。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>代码写完了，帮我提交审核。</pre>
+    </div>
+    <div class="story">
+      <span class="tag">翻车实录</span>第一次提交被拦下了——控制面的「源闭合」检查报出五个 missing module，
+      而它们全是完全合法的 RTL。把报错原文丢给 Trae，它对着引擎源码逐条改写（语义不变）后重新提交，冻结通过。
+      报错原文与五处误伤的逐条修法见右栏两张修复卡。
+    </div>
+    <div class="status-line ok">✓ 词法修复后重新提交 · candidate.deliver ok</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · SOURCE_CLOSURE_INVALID 原文</summary>
+      <div class="body">
+        <p>第一次 candidate.deliver 被拦下的报错原文：</p>
+        <pre><span class="r">SOURCE_CLOSURE_INVALID: referenced missing module CNT_W; referenced missing module RESULT;
+referenced missing module integer; referenced missing module seen_pos; referenced missing module step_cnt</span></pre>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · candidate.deliver 的动作语义</summary>
+      <div class="body">
+        <p>candidate.deliver = <b>冻结</b>：控制面把候选文件的字节读走、算 digest、存进不可变的 run 目录。
+        之后每一次验证都以这份冻结字节为准——你在工作树里再怎么改，都影响不了已提交的候选。</p>
+        <p>不可变性是后两步的前提：verification.simulate 亲跑的是冻结字节，candidate.promote 安装的也是冻结字节。
+        改一个字节都会被 digest 识破——想换内容，就走 candidate.repair 提交新候选，而不是偷偷改旧文件。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>读懂「源闭合」检查的词法陷阱</h3>
+    <p class="why">这一步在做什么：控制面扫描候选 HDL 的模块引用闭合性。它的词法器只保留「标识符 + <code># ( ) ; , .</code>」，
+    并把 <code>标识符 标识符 (</code> 的序列当作模块例化——于是很多完全合法的 RTL 会「看起来像例化」。
+    五个误伤的对照表与逐条修法已放进右栏修复卡。</p>
+    <p>后面增量章节还会遇到同族陷阱：<code>wire co0 = en0 &amp;&amp; (d0==9)</code> 的比较括号、
+    <code>endcase</code> 紧跟 <code>if (</code>、<code>x = f(</code> 型赋值——手法一致：调整括号/拆行/换写法，语义不变。</p>
+    <div class="status-line ok">✓ 五处误伤全部改写 · 语义不变 · 冻结通过</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 五个误伤逐条对照</summary>
+      <div class="body">
+        <p>五个误报逐一对应（修复手法都是官方推荐的外层括号或等价改写）：</p>
+        <table>
+          <tr><th>误报的“模块”</th><th>肇事的代码</th><th>词法上变成</th><th>修法</th></tr>
+          <tr><td><code>CNT_W</code></td><td><code>localparam int CNT_W = $clog2(N);</code></td><td><code>CNT_W $clog2 (</code></td><td>位宽声明里直接写 <code>[$clog2(N)-1:0]</code>，删掉这个 localparam</td></tr>
+          <tr><td><code>step_cnt</code></td><td><code>step_cnt == CNT_W'(N-1)</code></td><td><code>step_cnt CNT_W (</code></td><td>去掉 sized cast：<code>step_cnt == (N-1)</code></td></tr>
+          <tr><td><code>integer</code></td><td><code>function integer f(...)</code></td><td><code>integer f (</code></td><td>返回类型写成 <code>function [31:0] f(...)</code></td></tr>
+          <tr><td><code>seen_pos</code></td><td><code>seen_pos[pos_of(cur)] = 1;</code></td><td><code>seen_pos pos_of (</code></td><td>外层加括号：<code>seen_pos[(pos_of(cur))] = 1;</code></td></tr>
+          <tr><td><code>RESULT</code></td><td>字符串 <code>"TB-RESULT: PASS ("</code></td><td><code>RESULT PASS (</code>（字符串不剥离！）</td><td>文案改成 <code>TB-RESULT.PASS (</code>（逗号/句点是合法分隔符）</td></tr>
+        </table>
+      </div>
+    </details>
+    <details class="aside-card a-branch">
+      <summary>可能 · 同族陷阱预告</summary>
+      <div class="body">
+        <p>后续增量章节的同族案例（修法一致）：</p>
+        <p><code>wire co0 = en0 &amp;&amp; (d0==9)</code> 的比较括号、<code>endcase</code> 紧跟 <code>if (</code>、
+        <code>x = f(</code> 型赋值——调整括号 / 拆行 / 换写法，语义不变。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 经验沉淀</summary>
+      <div class="body">
+        <p>这不是要你背词法规则。让 Trae 修——把错误原文丢给它，它读引擎源码后给出的改法都是「语义等价 + 词法安全」的。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>testbench 的事件协议：EVOVERSE_PROPERTY</h3>
+    <p class="why">这一步在做什么：控制面判 PASS 不看人读的 TB-RESULT 文案，只解析标准事件行并与 Test IR 的义务集合精确对账。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k">// 每项义务在达成点输出一行（propertyId 必须与规格追踪表里的 ID 完全一致）：</span>
+$display("EVOVERSE_PROPERTY {\"propertyId\":\"PROP-ONEHOT\",\"status\":\"pass\",\"artifactPath\":\"tb_marquee10\"}");
+
+<span class="k"># 判定规则（来自引擎）：expected = {性质×requiredActivations} ∪ {判定器} ∪ {覆盖项}</span>
+<span class="k">#   全部满足 ≥ 次数 → all-pass；期望集外的 ID → incomplete-coverage；fail → assertion-mismatch</span></pre></div>
+    <p>跑马灯基线的义务账单：PROP-RESET×1、PROP-ONEHOT×10、PROP-ROTATE×10、PROP-HOLD×5、
+    四个 ORC、两个 COV——testbench 在对应检查点逐一打点。本地先自测：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>iverilog -g2012 -s tb_marquee10 -o sim/tb.vvp rtl/top.v rtl/marquee10.sv sim/tb_marquee10.sv
+vvp sim/tb.vvp
+
+<span class="g">TB-RESULT.PASS (160 samples, 39 rotations)      # 248 条事件全部 pass，$finish 退出码 0</span></pre></div>
+    <div class="story">
+      <span class="tag">翻车实录</span>第一版 tb 的步进间隔检查失败过一次——根因是输出寄存让首次呈现多了固定 1 拍。
+      修正方式不是改 RTL，而是把期望写成「首转多 1 拍」并注释原因。FAIL 原文与逐条分析见右栏修复卡。
+    </div>
+    <div class="status-line ok">✓ 本地自测 PASS · 248 条事件全过 · $finish 退出码 0</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 一个真实的时序发现</summary>
+      <div class="body">
+        <p>失败原文：</p>
+        <pre><span class="r">FAIL PROP-HOLD rotate=1 hold=5 exp=4</span></pre>
+        <p><b>根因：</b>输出寄存 <code>led_out_r</code> 让首次呈现多了固定 1 拍。</p>
+        <p><b>修法：</b>不是改 RTL，而是把期望写成「首转 = STEP_CYCLES+1、后续 = STEP_CYCLES」并注释原因——
+        规格要求的是<b>相邻步进</b>间隔精确，首拍的呈现延迟是合法行为。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>控制面亲自仿真（verification.simulate）</h3>
+    <p class="why">这一步在做什么：控制面做的事远不止「跑一下」——它对冻结候选的身份、编译、运行、对账全程亲办（细节见右栏知识卡）。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>跑一遍仿真看看结果。</pre>
+    </div>
+    <div class="codeblock"><pre><span class="g">ok:true  evidenceId: sim-6746d444dfe6  status: PASS  scope: CANDIDATE_SLICE</span>
+<span class="g">asset module:marquee10 → QUALIFIED</span>
+<span class="g">run 工件: .evoverse/control/artifacts/runs/&lt;requestId&gt;/  （compile/run stdout、events.json、summary.json）</span></pre></div>
+    <div class="status-line ok">✓ verification.simulate PASS · 证据 sim-6746d444dfe6</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 仿真证据 ID 谱系</summary>
+      <div class="body">
+        <p>每次 verification.simulate 都会在控制面留下独立证据 ID：</p>
+        <p><code>sim-6746d444dfe6</code> —— 本章基线候选仿真 PASS / valid（四项义务全过）<br>
+        <code>sim-0e581ab5dfd2</code> —— 第 08 章 seg-counter 增量仿真 PASS / valid<br>
+        <code>sim-e73184add91f</code> —— 第 09 章 btn-switch 增量仿真 PASS / valid<br>
+        <code>sim-c3fb67b7796d</code> —— 教程首版全流程记录中的基线候选仿真 PASS</p>
+        <p>下一章你还会看到对应的原生构建证据 <code>bld-7d8c71f1f588</code>——两类证据各自独立，谁也不能替代谁。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · verification.simulate 的动作语义</summary>
+      <div class="body">
+        <p>控制面亲跑，不是替你调脚本：它从<b>冻结目录</b>重新推导候选身份、重编译 scoped Test IR、
+        在<b>隔离 run 目录</b>里亲跑 iverilog/vvp、解析事件、对账义务——你工作树里的任何改动都进不了这条链。</p>
+        <p>返回字段怎么读：<code>ok:true</code> 动作成功；<code>status: PASS</code> 义务全对账；
+        <code>scope: CANDIDATE_SLICE</code> 只验证候选声明的文件；<code>asset → QUALIFIED</code> 是模块获得的质量等级。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>晋级基线（candidate.promote）</h3>
+    <p class="why">这一步在做什么：把「仿真 PASS 的候选」安装成新基线——以后任何增量都以它为父。</p>
+    <div class="codeblock"><pre><span class="g">candidate.promote → ok:true</span>
+<span class="g">  intent marquee-baseline → PROMOTED</span>
+<span class="g">  asset module:marquee10  → BASELINE</span>
+<span class="g">  baseline digest: e2465585…   （7 个文件的新基线清单）</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>晋级后 <code>.evoverse/control/artifacts/baselines/&lt;digest&gt;/</code> 出现完整基线快照
+    （SYSTEM.md + 7 个文件的当时字节）。注意：快照是晋级那一刻的字节。</div>
+    <div class="status-line ok">✓ marquee-baseline PROMOTED · module:marquee10 → BASELINE</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 仿真过 ≠ 综合过</summary>
+      <div class="body">
+        <p>第 06 章我们会发现：这份基线快照里的 RTL 还带着一个综合器不认的语法——
+        这正是「仿真过 ≠ 综合过」的活教材。仿真证据（本章）与原生构建证据（下一章）各自独立，
+        一个 PASS 换不来另一个 PASS。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>候选链闭环：冻结 → 真跑 → 晋级。下一章把它变成比特流：Efinity 命令行的正确打开方式、
+  一个真实的综合错误（<code>int</code> 类型），以及 ISF「引导 + 重放两连 PASS」的验证仪式。</p>
+</section>
+<div class="ch-nav"><a href="04-intent-spec.html">← 上一章</a><a href="06-native-build.html">下一章：原生编译 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 03 章 · 创建第一个工程</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="03">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 03</div>
+  <h1>创建第一个工程</h1>
+  <p class="sub">一句话生成 stage0 骨架，一次真实编译证明工具链健康。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>得到 <code>marquee-lab</code> 工程（骨架：50 MHz 时钟 + 复位按键 + 1 个 LED 的闪烁设计），
+  并看到 Efinity 四阶段编译全部 <span class="g">PASS</span>。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>打开 Welcome 界面，完成环境设置与体检</h3>
+    <p class="why">这一步在做什么：Welcome 页是 SDK 的控制台首页——环境体检、Catalog 同步、板卡画廊、各功能入口都在这里。
+    开工之前先在这里把环境设置收尾，比在命令行里逐项猜要直观得多。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># 在 Trae 里按 Ctrl+Shift+P 打开命令面板，输入：</span>
+EvoVerse: Show Welcome</pre></div>
+    <div class="status-line ok">✓ 体检全绿 + Catalog 统计里能看到板卡数——可以开工了</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 体检面板查六项</summary>
+      <div class="body">
+        <p>页面上半部分是<b>环境体检</b>面板，逐项检查 <code>Python / Efinity / MCP / 仿真器 / CLI / 适配器</code>——
+        全绿说明第 01 章的环境就位。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 体检出现红项</summary>
+      <div class="body">
+        <p>有红项时点「重新体检」；路径类红项用命令面板
+        <code>EvoVerse: Set Up (re-run bootstrap)</code> 重跑一遍安装引导即可修正。</p>
+      </div>
+    </details>
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 两个入口提醒</summary>
+      <div class="body">
+        <p>扩展装好后通常会<b>自动弹出</b> Welcome 页；没弹就用 <code>EvoVerse: Show Welcome</code> 随时打开。</p>
+        <p>右侧是 <b>Catalog 统计与 Sync Catalog 按钮</b>——第 01 章的 sync 也可以直接在这里点
+        （命令面板同样有 <code>EvoVerse: Sync Catalog</code> / <code>EvoVerse: Catalog Status</code>）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>用自然语言建工程</h3>
+    <p class="why">这一步在做什么：SDK 从板卡目录挑出骨架 jacket，落成一份可以直接编译的 Efinity 工程——
+    这是工程生成能力，还不涉及后面的「设计意图」流程（那个入口在第 04 章）。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说（点右侧按钮复制）：</div>
+      <button class="copy-btn">复制</button>
+      <pre>帮我在这块 t20f256 的板子上新建一个工程，就叫 marquee-lab，先来个最简单能跑的设计，把编译的流程先走通。</pre>
+    </div>
+    <p>Trae 会调用 SDK 的工程生成能力，产出下面这棵文件树（每一步生成新文件时，留意 👀 标记）：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>marquee-lab/
+├── rtl/
+│   └── top.v                                  <span class="k"># 顶层：24 位计数器最高位驱动 led_user（~0.34 Hz 闪烁）</span>
+├── constraints/
+│   ├── t20f256_xd_ps_eval_stage0.pins.isf     <span class="k"># 管脚约束（Python API 格式，含 7 组 bank 电压）</span>
+│   └── t20f256_xd_ps_eval_stage0.sdc          <span class="k"># create_clock -name clk_50m -period 20.000</span>
+├── marquee-lab.xml                            <span class="k"># Efinity 2026.1 工程（unified_flow=true）</span>
+├── marquee-lab.peri.xml                       <span class="k"># 接口数据库（工程源文件，构建后必须存活）</span>
+└── stage0.md                                  <span class="k"># 骨架说明（含管脚表与编译方法）</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>打开 <code>rtl/top.v</code>：顶层模块名是 <code>t20f256_xd_ps_eval_stage0</code>，
+    端口只有 <code>clk_50m / arst_n / led_user</code> 三个。</div>
+    <div class="status-line ok">✓ marquee-lab 工程落盘（rtl + ISF + SDC + XML + peri.xml）</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · ISF 不是 XML</summary>
+      <div class="body">
+        <p>打开 <code>.pins.isf</code>：里面是 <code>design.assign_pkg_pin("clk_50m","H13")</code> 这样的
+        Python 调用——<b>ISF 不是 XML</b>，这一点后面章节非常重要。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>先做一次「工具链体检」编译</h3>
+    <p class="why">这一步在做什么：骨架设计的意义就是快速暴露环境问题——RTL 只有一行逻辑，编译失败必然是环境/工程问题而不是设计问题。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>帮我把这个工程完整编译一遍，每个阶段成没成、报告放在哪，都告诉我。</pre>
+    </div>
+    <p>Trae 在后台调 Efinity 工具链跑的编译（真实输出，本教程实测）：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>   map :        <span class="g">PASS</span>      <span class="k"># RTL 综合与技术映射</span>
+   interface :  <span class="g">PASS</span>      <span class="k"># 重放 ISF 约束 → 更新 peri.xml</span>
+   pnr :        <span class="g">PASS</span>      <span class="k"># 布局布线 + 静态时序分析</span>
+   pgm :        <span class="g">PASS</span>      <span class="k"># 生成 bitstream / hex</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>四行 <span class="g">PASS</span>；时序报告里 Fmax 约 399.5 MHz（对 20 ns 周期约束裕量巨大）。</div>
+    <div class="status-line ok">✓ map / interface / pnr / pgm 全 PASS</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 最常见的三种失败</summary>
+      <div class="body">
+        <p>① <code>ModuleNotFoundError: No module named 'encodings'</code>——Efinity 的 Python 环境变量没设
+        （直接对 Trae 说「编译环境报错了，你看看怎么修」，或见排错手册 A 节）。</p>
+        <p>② <code>An exception occurred: 'EFINITY_USER_DIR_INI'</code>——缺该环境变量（同样交给 AI 处理）。</p>
+        <p>③ 烧录阶段 <code>list index out of range</code>——板子没连（→ 第 07 章专门讲）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>看懂三份关键报告</h3>
+    <p class="why">这一步在做什么：养成「编译完先看报告」的习惯；后面增量时你要能自己判断管脚冲突和资源余量。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>outflow\marquee-lab.pinout.rpt    <span class="k"># 管脚报告：确认 H13/A4/T8 落针、无冲突</span>
+outflow\marquee-lab.timing.rpt    <span class="k"># 时序：Slack 为正 = 满足约束</span>
+outflow\marquee-lab.res.csv       <span class="k"># 资源：FF / LUT / RAM 使用量</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>pinout.rpt 确认 H13/A4/T8 落针、无冲突；timing.rpt 的 Slack 为正；res.csv 里 FF / LUT / RAM 使用量。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 骨架的基线价值</summary>
+      <div class="body">
+        <p>骨架阶段的资源占用极小（几十 FF/LUT），但它建立了基线认知：后面集成完成时我们会回到
+        <code>res.csv</code> 对比三个模块各自的占用。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>给工程做一次 git 初始化</h3>
+    <p class="why">这一步在做什么：EvoVerse 控制面按 <b>git 根</b>识别工程边界；第 08 章的并行增量还会用到 git worktree。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>git init
+git add -A
+git commit -m "stage0 skeleton from new-project"
+<span class="k"># 实测提交：2abc3b7（68 个文件）</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>提交后工程根出现 <code>.git\</code>；第一次调用控制面时还会出现 <code>.evoverse\control\</code>（收据与工件目录）。</div>
+    <div class="status-line ok">✓ 实测提交 2abc3b7（68 个文件）</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 为什么这一步不能省</summary>
+      <div class="body">
+        <p>控制面按 <b>git 根</b>识别工程边界——骨架一落盘就 init + 首次提交，
+        后面的控制面动作才能正确圈定工程；第 08 章的并行增量还会用到 git worktree。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>骨架编译通过 = 工具链健康证明。但从「能编译的骨架」到「受管的设计」，中间隔着一整套控制面流程：
+  意图（intent）、仿真等级、可执行规格（EXECUTABLE_2_0）。第 04 章我们把这层关系讲清楚——
+  并且原样复盘一次 16 条规格错误的排障现场。</p>
+</section>
+<div class="ch-nav"><a href="02-board.html">← 上一章</a><a href="04-intent-spec.html">下一章：意图与规格 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

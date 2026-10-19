@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "id": "tutorial-replay",
+  "target": "fpga",
+  "sourceMaterial": {
+    "board": "t20f256-xd-ps-eval",
+    "materialVersion": "1.0.0",
+    "carrier": null,
+    "carrierMaterialVersion": null
+  }
+}

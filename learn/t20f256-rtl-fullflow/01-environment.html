@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 01 章 · 装好整套环境</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="01">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 01</div>
+  <h1>装好整套环境</h1>
+  <p class="sub">从一台空白 Windows 开始，装 Trae、部署 EvoVerse SDK、备好 Icarus Verilog 与 Efinity 工具链。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>四样东西各就各位：<b>Trae</b>（AI 开发环境）、<b>EvoVerse SDK</b>（本教程的主角）、
+  <b>Icarus Verilog</b>（仿真器）、<b>Efinity 2026.1</b>（FPGA 原生工具链）。装完在本章末尾能跑三条自检命令。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>安装 Trae</h3>
+    <p class="why">这一步在做什么：Trae 是整个流程的驾驶舱——你用自然语言跟它对话，它驱动 SDK 与工具链干活。</p>
+    <p>从 Trae 官网下载 Windows 安装包，一路默认安装。装完第一次启动时让它完成初始化即可，不需要任何账号之外的配置。</p>
+    <div class="status-line ok">✓ Trae 可启动 · 初始化完成</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 四件套怎么协作</summary>
+      <div class="body">
+        <p>Trae 是驾驶舱：你对它说自然语言，它驱动 EvoVerse SDK 干活；SDK 再分别调用
+        Icarus Verilog（跑仿真）与 Efinity 2026.1（跑原生编译）。</p>
+        <p>本教程后面每一章的 💬 话术框，都是说给 Trae 听的。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>部署 EvoVerse SDK</h3>
+    <p class="why">这一步在做什么：SDK 提供 VS Code 扩展、CLI、MCP 控制面和板卡目录（catalog），后面每一章都靠它。</p>
+    <p>拿到 SDK 发布包后解压到一个<b>纯 ASCII 路径</b>（本教程的环境装在
+    <code>C:\Users\&lt;你&gt;\evoverse-sdk</code>）。然后用随包的部署脚本安装扩展。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># 在 SDK 仓库根目录执行（部署脚本会装好三个扩展）</span>
+powershell -File scripts\deploy.ps1</pre></div>
+    <div class="obs"><span class="tag">看什么</span>部署完成后，这些位置会出现 SDK 的东西：<code>~\.trae-cn\</code> 下的扩展目录、
+    <code>evoverse-sdk\catalog\boards\</code>（板卡资料仓库）、<code>evoverse-sdk\runtime\</code>（控制面引擎）。</div>
+    <div class="status-line ok">✓ deploy.ps1 一次装好三个扩展</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 为什么必须纯 ASCII 路径</summary>
+      <div class="body">
+        <p>Efinity 对中文路径敏感——SDK 安装路径（以及后面所有工程路径）都必须保持纯 ASCII，
+        本教程统一装在 <code>C:\Users\&lt;你&gt;\evoverse-sdk</code>。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>安装 Icarus Verilog（仿真器）</h3>
+    <p class="why">这一步在做什么：控制面的 <code>verification.simulate</code> 用 iverilog 跑阻塞仿真，是每个候选晋级的门槛。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># 用 winget 一条命令装好，装完重开终端</span>
+winget install SteffanIcarusVerilog.IcarusVerilog
+iverilog -V
+vvp -V</pre></div>
+    <div class="obs"><span class="tag">看什么</span>两条版本命令（<code>iverilog -V</code> / <code>vvp -V</code>）都能打印版本行。</div>
+    <div class="status-line ok">✓ iverilog / vvp 版本行都能打印</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 版本基线</summary>
+      <div class="body">
+        <p>本教程实测 <b>iverilog 12 系列</b>。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 提示找不到命令</summary>
+      <div class="body">
+        <p>多半是 PATH 没刷新——重开一个终端就好。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>安装 Efinity 2026.1</h3>
+    <p class="why">这一步在做什么：原生编译（综合、布局布线、生成比特流）全靠它；Trion T20F256 是它的目标器件。</p>
+    <p>用 Efinix 官网下载的安装器装到 <code>C:\Efinity\2026.1</code>（默认路径即可，同样保持纯 ASCII）。
+    装完先不急着打开 GUI——本教程全程用命令行驱动它。</p>
+    <div class="status-line ok">✓ C:\Efinity\2026.1 就位 · 全程命令行驱动</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 提前打个预防针</summary>
+      <div class="body">
+        <p>直接双击 <code>efx_run.bat</code> 会因为缺 <code>PYTHONHOME</code> 等环境变量而报：</p>
+        <pre><span class="r">ModuleNotFoundError: No module named 'encodings'</span></pre>
+        <p>第 06 章会给出完整的命令行环境封装，这里不用处理。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>获取 Catalog（板卡资料库）</h3>
+    <p class="why">这一步在做什么：Catalog 是 SDK 的版本化物料库——器件管脚权威库、板卡管脚表、骨架工程模板都在里面。
+    它<b>不随 SDK 安装预置</b>，要单独获取。本教程的 t20f256-xd-ps-eval 就住在官方 Catalog 的 stable 频道里。</p>
+
+    <h3>方式 A：在线 sync（推荐）</h3>
+    <p>SDK 自带一条公开的 Catalog 发布通道，不需要 GitHub 账号。在任意目录执行：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>& "C:\Users\&lt;你&gt;\evoverse-sdk\evoverse.cmd" sync
+
+<span class="g">✓ catalog synced（stable 频道）</span>
+<span class="k"># 可选参数：--channel preview（尝鲜频道） / --json（机器可读输出）</span>
+<span class="k"># 私有/镜像仓库可用 --repository URL 或环境变量 EVOVERSE_CATALOG_REPOSITORY 覆盖</span></pre></div>
+
+    <h3>方式 B：离线包（没有外网时）</h3>
+    <p>按你拿到的包形态二选一：</p>
+    <ul>
+      <li><b>散件资料包</b>（zip 里是 pdf/csv/isf/md 等板卡资料散文件）——用导入命令：</li>
+    </ul>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>& "C:\Users\&lt;你&gt;\evoverse-sdk\evoverse.cmd" import-local D:\downloads\t20f256-board-materials.zip
+
+<span class="g">→ importing into C:\Users\&lt;你&gt;\evoverse-sdk\catalog\boards\t20f256-board-materials</span>
+<span class="g">  imported files:  · 2 → docs/  · 1 → pinout/  · 3 → constraints/  · 1 → root/</span>
+<span class="g">✓ board imported as t20f256-board-materials</span></pre></div>
+    <ul>
+      <li><b>已成型板卡目录</b>（官方发的完整板卡文件夹，内部已是 <code>board.yaml + pinout\ + jackets\ + …</code>
+      的 Catalog 结构）——<b>不要</b>走 import-local，直接整个文件夹放进 SDK 的板卡目录：</li>
+    </ul>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># 目标位置：&lt;SDK 安装目录&gt;\catalog\boards\，目录名就是板卡 id</span>
+Expand-Archive D:\downloads\t20f256-xd-ps-eval.zip -DestinationPath "C:\Users\&lt;你&gt;\evoverse-sdk\catalog\boards\"
+
+<span class="k"># 放好后 SDK 通过目录枚举自动发现它（下一节验证）</span></pre></div>
+    <div class="status-line ok">✓ catalog synced（stable 频道）· 本板卡随包就位</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 方式怎么选</summary>
+      <div class="body">
+        <p><b>方式 A 在线 sync（推荐）</b>：SDK 自带公开发布通道，不需要 GitHub 账号，一条命令拿到整个 stable 频道。</p>
+        <p><b>方式 B 离线包</b>：没有外网时用；按包形态二选一——散件资料包走 import-local 导入，
+        已成型板卡目录直接放置。</p>
+      </div>
+    </details>
+    <details class="aside-card a-status" open>
+      <summary>状态 · sync 之后发生了什么</summary>
+      <div class="body">
+        <p>物料装进 <code>&lt;SDK&gt;\catalog\</code>（boards/devices/ips）；同时在
+        <code>&lt;SDK&gt;\.cache\catalog.git\</code> 留一个源仓库、写一份 <code>catalog-sync-receipt.json</code> 回执
+        （含版本号、commit、treeDigest——内容指纹，任何篡改会让下次 sync 失败）。</p>
+        <p>旧版本会自动备份到 <code>catalog.previous\</code>。</p>
+        <p>本教程实测：sync 到 stable <b>0.9.6</b>，本板卡随包就位。</p>
+      </div>
+    </details>
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 不爱命令行</summary>
+      <div class="body">
+        <p>命令面板里的 <code>EvoVerse: Sync Catalog</code> 和 Welcome 页上的同步按钮是同一件事。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · import-local 的能力边界</summary>
+      <div class="body">
+        <p>散件导入时 SDK 会自动按类型归类，并推导板卡 id（可用 <code>--id</code> 指定，同名已存在加 <code>--force</code>）。</p>
+        <p>import-local 也接受文件夹 / .tar.gz / 单个 .md / 单个 .pdf——数据手册也能起步，
+        SDK 会建板卡目录并把 PDF 归入 docs/ 等待元数据提取。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 成型目录别走 import-local</summary>
+      <div class="body">
+        <p>import-local 走的是散件路由，会把 jackets 结构打散——已成型板卡目录不要导入，
+        直接整个文件夹放进 <code>&lt;SDK&gt;\catalog\boards\</code>（目录名就是板卡 id）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 6</span>
+    <h3>确认整个环境就位</h3>
+    <p class="why">这一步在做什么：三条命令做最终体检，全绿才进入第 02 章。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre><span class="k"># ① Catalog 就位且同步过：</span>
+& "C:\Users\&lt;你&gt;\evoverse-sdk\evoverse.cmd" catalog status
+<span class="g">Catalog: ready (C:\Users\&lt;你&gt;\evoverse-sdk)</span>
+
+<span class="k"># ② 板卡清单里能看到本教程板卡（版本 1.0.0）：</span>
+& "C:\Users\&lt;你&gt;\evoverse-sdk\evoverse.cmd" list boards
+<span class="g">● t20f256-xd-ps-eval  1.0.0  T20F256 XD-PS Evaluation Board</span>
+
+<span class="k"># ③ 仿真器与 FPGA 工具链：</span>
+iverilog -V
+Test-Path C:\Efinity\2026.1\bin\efx_run.bat
+<span class="g">True</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>① <code>Catalog: ready</code>；② 清单里 <code>● t20f256-xd-ps-eval  1.0.0</code>；③ <code>True</code>。</div>
+    <div class="status-line ok">✓ 三条全绿 · 环境就位</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 三种不顺</summary>
+      <div class="body">
+        <p><b>① 报 not-ready / 没有回执：</b>还没执行过 sync（或 sync 中断）——回到 STEP 5 方式 A 重跑。</p>
+        <p><b>② 板卡不在列：</b>要么 sync 的频道/版本不含它（用 <code>catalog status</code> 看 catalog_version，
+        本教程要求 ≥0.9.6），要么离线放置的目录名/位置不对——确认文件夹在
+        <code>&lt;SDK&gt;\catalog\boards\&lt;板卡id&gt;\</code> 且里面有 <code>&lt;板卡id&gt;.md</code>。</p>
+        <p><b>② 显示 <code>?</code> 加告警：</b>某些板卡元数据不全属正常（不影响本板卡），
+        只认 t20f256-xd-ps-eval 那一行是 1.0.0 即可。</p>
+      </div>
+    </details>
+    <details class="aside-card a-status" open>
+      <summary>状态 · 就位后的文件</summary>
+      <div class="body">
+        <p><code>&lt;SDK&gt;\catalog\boards\t20f256-xd-ps-eval\</code>（板卡文档、
+        <code>pinout\t20f256-xd-ps-eval.csv</code> 110 行管脚表、<code>jackets\stage0\</code> 骨架模板）、
+        <code>&lt;SDK&gt;\catalog-sync-receipt.json</code>（sync 回执）。</p>
+        <p>第 02 章我们就来读它们。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<h2>环境自检清单</h2>
+<table>
+  <tr><th>检查项</th><th>命令</th><th>预期</th></tr>
+  <tr><td>SDK CLI 可用</td><td><code>evoverse.cmd --version</code></td><td>打印 CLI 版本</td></tr>
+  <tr><td>Catalog 已同步</td><td><code>evoverse.cmd catalog status</code></td><td><code>Catalog: ready</code> + 版本回执（≥0.9.6）</td></tr>
+  <tr><td>板卡在列</td><td><code>evoverse.cmd list boards</code></td><td><code>● t20f256-xd-ps-eval 1.0.0</code></td></tr>
+  <tr><td>iverilog 可用</td><td><code>iverilog -V</code></td><td>打印版本信息</td></tr>
+  <tr><td>Efinity 就位</td><td><code>Test-Path C:\Efinity\2026.1\bin\efx_run.bat</code></td><td><code>True</code></td></tr>
+  <tr><td>Trae 可用</td><td>打开 Trae，扩展列表出现 EvoVerse</td><td>条目在列</td></tr>
+</table>
+
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>环境四件套齐了。下一章先不写代码——我们花一章时间认识这块板子：它有什么物料、管脚从哪里查、
+  哪些假设（数码管极性、拨码方向）要在设计时显式记录成「决策」。</p>
+</section>
+<div class="ch-nav"><a href="index.html">← 目录</a><a href="02-board.html">下一章：认识这块板子 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

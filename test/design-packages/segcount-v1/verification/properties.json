@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "properties",
+  "items": [
+    {
+      "id": "PROP-101",
+      "ruleId": "rtl.reset.async-assert-sync-release",
+      "moduleId": "segcount-display",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "rst_sync_r[2] 上升（复位同步释放完成）",
+      "consequent": ["bcd_r == 0", "tick_cnt_r == 0", "scan_cnt_r == 0"],
+      "observedSignals": ["rst_sync_r", "bcd_r", "tick_cnt_r", "scan_cnt_r"],
+      "requiredActivations": 1
+    },
+    {
+      "id": "PROP-102",
+      "ruleId": "rtl.sequential.increment-exact",
+      "moduleId": "segcount-display",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "bcd_r 在第 n 次变化后等于 to_bcd8(n)",
+      "consequent": ["下一次变化后 bcd_r == to_bcd8(n+1)", "两次变化之间 bcd_r 保持不变"],
+      "observedSignals": ["bcd_r"],
+      "requiredActivations": 10
+    },
+    {
+      "id": "PROP-103",
+      "ruleId": "rtl.counter.wrap-boundary",
+      "moduleId": "segcount-display",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "计数值到达 10^DIGITS-1（旁证实例 99）",
+      "consequent": ["下一次递增结果为全零", "回绕后递增序列从 1 继续"],
+      "observedSignals": ["bcd_r", "u_wrap.bcd_r"],
+      "requiredActivations": 2
+    },
+    {
+      "id": "PROP-104",
+      "ruleId": "rtl.display.scan-mux-invariant",
+      "moduleId": "segcount-display",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "scan_idx_r 切换到 idx",
+      "consequent": ["dig_o == ~(one-hot<<idx)（共阴）", "seg_o == (idx > msb ? 0 : decode(bcd[idx]))", "dp 段恒灭"],
+      "observedSignals": ["dig_o", "seg_o", "scan_idx_r", "bcd_r"],
+      "requiredActivations": 8
+    }
+  ]
+}

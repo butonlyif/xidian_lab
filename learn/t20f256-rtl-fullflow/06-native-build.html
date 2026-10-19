@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 06 章 · 原生编译</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="06">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 06</div>
+  <h1>原生编译</h1>
+  <p class="sub">工程已经就位，一句话让 AI 完整编译并交付比特流；在 Workbench 里读懂编译结果与时序报告。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>不碰命令行：第 03 章建好的工程直接拿来编译——让 AI 跑完四阶段、把比特流交到你手上；
+  学会在 Workbench 里看编译报告（资源、管脚、时序、关键路径）；编译失败时，让 AI 照着日志自己修。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>一句话触发编译</h3>
+    <p class="why">这一步在做什么：把 RTL 变成比特流要经过 Efinity 的四段流水线。这些全是 AI 的活，你只管说要什么。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>工程已经建好了，RTL、仿真和约束都在里面，直接帮我完整编译一遍，最后给我一个能烧的比特流。</pre>
+    </div>
+    <p>背后会发生三件事：① 直接复用既有工程文件——<code>marquee-lab.xml</code>（工程）、
+    <code>constraints/*.isf</code>（管脚）、<code>constraints/*.sdc</code>（时钟）在第 03 章就已落盘，
+    第 04 章的 9 组新管脚也已写进 ISF；② 依次跑 Efinity 的四个阶段；
+    ③ 把结果汇总成报告。<b>环境变量、工具路径这些脏活 AI 自己处理</b>——你从头到尾不需要碰 <code>efx_run.bat</code>。</p>
+    <table>
+      <tr><th>阶段</th><th>在做什么</th><th>产出</th></tr>
+      <tr><td>map</td><td>RTL 综合与技术映射（翻译成芯片原语）</td><td>网表</td></tr>
+      <tr><td>interface</td><td>重放 ISF 管脚约束 → 更新接口数据库</td><td>marquee-lab.peri.xml（工程源文件）</td></tr>
+      <tr><td>pnr</td><td>布局布线 + 静态时序分析</td><td>时序报告、管脚报告</td></tr>
+      <tr><td>pgm</td><td>生成比特流</td><td>outflow\marquee-lab.bit / .hex</td></tr>
+    </table>
+    <div class="card err-card"><b>但这次编译失败了</b>——这是真实发生的事，下一节看 AI 怎么修。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 编译</summary>
+      <div class="body">
+        <p>四阶段全绿后，比特流落在 <code>outflow\marquee-lab.bit / .hex</code>。
+        本次实测：这次编译在 <b>map 阶段 FAIL</b>——报错原文与修法见下一节的「翻车实录」。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 建工程只发生一次</summary>
+      <div class="body">
+        <p>第 03 章一句话建工程之后，就不会再有第二次「生成工程」了：基线晋级（第 05 章）后，
+        每一轮都是<b>既有工程上的增量</b>——编译复用现有 XML/ISF/SDC，增量意图开隔离 worktree，
+        集成也只是往同一个顶层继续例化。对 Trae 说「编译」就行，它认得这个工程。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 你只管说要什么</summary>
+      <div class="body">
+        <p>四段流水线（map → interface → pnr → pgm）全是 AI 的活：复用工程文件、跑阶段、汇总报告，
+        你从头到尾不碰命令行。<code>efx_run.bat</code> 一次都不用自己敲。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>真实翻车：把报错丢给 AI</h3>
+    <p class="why">这一步在做什么：iverilog（仿真）和 Efinity（综合）对 SystemVerilog 的支持面不一样——「仿真过 ≠ 综合过」。
+    排错的方式不是你自己啃日志，而是让 AI 读。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>编译失败了，你看看报错和日志，把问题修好，修完再编译一遍。</pre>
+    </div>
+    <div class="story">
+      <span class="tag">翻车实录</span>这次编译在 map 阶段倒下：端口参数写成了 <code>parameter int</code>，
+      iverilog 完全接受，Efinity 前端不认。把报错丢给 AI，它定位到三处方言差异，回归 Verilog-2001 等价写法。
+      修完自动重编，四阶段全绿：
+    </div>
+    <div class="codeblock"><pre>   map :        <span class="g">PASS</span>
+   interface :  <span class="g">PASS</span>
+   pnr :        <span class="g">PASS</span>
+   pgm :        <span class="g">PASS</span>      <span class="k"># outflow\marquee-lab.bit / .hex 到手</span></pre></div>
+    <div class="status-line ok">✓ 修复后四阶段全绿 · 比特流到手</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · map 日志现场</summary>
+      <div class="body">
+        <p>AI 从 map 日志里找到的报错原文：</p>
+        <pre><span class="r">[EFX-0010 VERI-ERROR] 'int' is an unknown type (VERI-1556) (rtl/top.v:14)</span>
+<span class="r">[EFX-0010 VERI-ERROR] module 't20f256_xd_ps_eval_stage0' is ignored due to previous errors</span>
+   map :        <span class="r">FAIL</span></pre>
+        <p>第二行说明顶层模块因前序错误被整体忽略——所以必须先修 <code>rtl/top.v:14</code> 那一个类型错。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 三处 V2001 改动</summary>
+      <div class="body">
+        <p>肇因：端口参数写成了 <code>parameter int STEP_CYCLES = ...</code>——iverilog 完全接受，Efinity 前端不认。
+        修法是回归 Verilog-2001 兼容写法，三处改动全部语义等价：</p>
+        <table>
+          <tr><th>SV 写法（仿真器认）</th><th>V2001 写法（综合器也认）</th></tr>
+          <tr><td><code>parameter int N = 10</code></td><td><code>parameter N = 10</code></td></tr>
+          <tr><td><code>cnt &lt;= '0;</code></td><td><code>cnt &lt;= 0;</code></td></tr>
+          <tr><td><code>led &lt;= '0;</code></td><td><code>led &lt;= {NUM_LEDS{1'b0}};</code></td></tr>
+        </table>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 经验沉淀</summary>
+      <div class="body">
+        <p>报错原文是排错的第一手证据。把「编译失败了，你看看报错修一下」说给 AI，
+        比自己猜强得多——它读得到完整日志，也知道「int 换 V2001 写法」这类工具差异。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>在 Workbench 里看编译结果与时序报告</h3>
+    <p class="why">这一步在做什么：编译结果不应只是「PASS 四连」，你要亲眼看到资源花了多少、管脚落在哪、时序过没过。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>编译过了，把编译报告打开给我看看：资源用了多少，时序有没有过，管脚都落在哪。</pre>
+    </div>
+    <p>AI 会打开 Workbench 的编译报告面板（也可以自己来：左侧活动栏点开 EvoVerse 的 Workbench → Build 标签 →
+    打开最近一次编译的报告）。报告按标签页分块，每页看一样东西：</p>
+    <table>
+      <tr><th>标签页</th><th>看什么</th><th>基线跑马灯的实测值</th></tr>
+      <tr><td>概览</td><td>四阶段 PASS/FAIL、总耗时、器件与顶层</td><td>T20F256 / 全 PASS</td></tr>
+      <tr><td>资源</td><td>FF / LUT / BRAM / DSP 占用与占比</td><td>几十个 FF/LUT，占比不足 1%</td></tr>
+      <tr><td>IO 与时钟</td><td>每个信号的管脚、电平、bank；时钟与约束</td><td>clk_50m→H13、LED 首脚→T8 等落针核对</td></tr>
+      <tr><td>时序</td><td><b>Setup/Hold 是否 MET、WNS（最差裕量）</b></td><td>正裕量，Fmax 约 399.5 MHz（约束 20 ns）</td></tr>
+      <tr><td>关键路径</td><td>最差路径的逐段图（Mermaid），能点到 RTL 行号</td><td>计数器比较 → one-hot 译码</td></tr>
+      <tr><td>优化建议 / Tcl</td><td>可执行的编译策略；本次编译实际执行的命令</td><td>基线无需优化</td></tr>
+    </table>
+    <div class="status-line ok">✓ 报告面板打开 · T20F256 全 PASS</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 看报告的肌肉记忆</summary>
+      <div class="body">
+        <p>先看概览确认真过了 → 看时序 WNS 是不是正数 → 再扫一眼资源有没有异常膨胀。</p>
+      </div>
+    </details>
+    <details class="aside-card a-branch">
+      <summary>分支 · 时序没过时</summary>
+      <div class="body">
+        <p>去「关键路径」标签页：最差路径会画成逐段图（Mermaid）并链到 RTL 行号，直接从那里开始查。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>AI 自动的安全仪式：ISF 重放验证</h3>
+    <p class="why">这一步在做什么：管脚约束文件（ISF）有「重放安全」契约——每次编译都会把 ISF 重放到工程的接口数据库上，
+    所以 ISF 只能写幂等的赋值语句，且改动后要过官方自检。这些 AI 每次都会做，你只需要知道为什么。</p>
+    <p>新管脚的首次编译是「引导」：接口数据库第一次认识这些实例，自检会先报一批
+    「Unknown instance」类警告（属预期，不是语法错）。这次实测的复验证据有两层：
+    编译的 interface 阶段 <b>PASS</b>——每次编译都会把 ISF 完整重放一遍，PASS 就是官方的「重放安全」证明；
+    再人工核对 peri.xml 的管脚数与电平无异常。完整版 SDK 另带 <code>cli/import_gpio.bat --dry-run</code> 可做独立自检：</p>
+    <div class="codeblock"><pre><span class="g">[OK] No issues reported.      exit=0</span>   <span class="k"># 完整 SDK 环境的独立自检输出</span></pre></div>
+    <p>顺带一提：这次编译已作为 <code>build.native</code> 证据登记进控制面
+    （证据 ID <code>bld-7d8c71f1f588</code>，NATIVE_BUILT / PASS / valid），与第 05 章的仿真证据并列——
+    仿真证据和原生构建证据各自独立，谁也不能替代谁。</p>
+    <div class="status-line ok">✓ bld-7d8c71f1f588 已登记 · NATIVE_BUILT</div>
+    <div class="card warn-card"><b>你唯一要记住的：</b>工程里的 <code>marquee-lab.peri.xml</code> 是<b>工程源文件</b>，
+    别手改、别删除——删了之后下一次编译的管脚约束就对不上了。这是本工程少数「不要碰」的文件。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · build.native 证据</summary>
+      <div class="body">
+        <p>本章编译已登记进控制面：</p>
+        <pre><span class="g">evidenceId: bld-7d8c71f1f588</span>
+<span class="g">status: NATIVE_BUILT / PASS / valid</span></pre>
+        <p>与第 05 章的仿真证据（sim-…）并列——<b>仿真证据和原生构建证据各自独立，谁也不能替代谁</b>。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 引导 vs 重放</summary>
+      <div class="body">
+        <p><b>引导（一次性）</b>：首次编译时接口数据库第一次认识这些管脚实例，
+        自检先报一批「Unknown instance」类警告——属预期，不是语法错。</p>
+        <p><b>重放（每次）</b>：ISF 只写幂等的赋值语句，每次编译的 interface 阶段都把 ISF 完整重放一遍——
+        阶段 PASS 就是官方的「重放安全」证明。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<div class="obs"><span class="tag">👀 观察文件</span>本章<b>没有新增工程文件</b>——<code>marquee-lab.xml</code>（Efinity 工程）、
+<code>marquee-lab.peri.xml</code>（接口数据库，勿动）、<code>constraints/</code> 下的 <code>.pins.isf</code>（管脚，Python API 格式）
+与 <code>.sdc</code>（时钟约束）都是第 03 章起就存在的工程源文件，本轮原样复用。变化只在编译输出：每次编译后
+<code>outflow\</code> 被整组刷新——网表、pinout.rpt、timing.rpt、res.csv 和最终的 .bit/.hex。</div>
+
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>比特流到手，时序裕量充足。下一章面对现实：板子还没连上——一句话烧录、<b>预期现象</b>（连上板后应当看到什么）、
+  以及没连板时那条真实报错的完整排查路径。</p>
+</section>
+<div class="ch-nav"><a href="05-candidate-sim.html">← 上一章</a><a href="07-program.html">下一章：烧录与上板 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

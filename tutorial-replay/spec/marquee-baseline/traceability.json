@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "traceability",
+  "items": [
+    {
+      "requirementId": "REQ-1",
+      "moduleIds": ["marquee10"],
+      "algorithmIds": ["algo-onehot-rotate"],
+      "scenarioIds": ["SCN-MAINFLOW"],
+      "oracleIds": ["ORC-ONEHOT", "ORC-SEQUENCE"],
+      "propertyIds": ["PROP-ONEHOT", "PROP-ROTATE"],
+      "coverageIds": ["COV-STATES"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-2",
+      "moduleIds": ["marquee10"],
+      "algorithmIds": ["algo-onehot-rotate"],
+      "scenarioIds": ["SCN-RESET"],
+      "oracleIds": ["ORC-RESET-ZERO"],
+      "propertyIds": ["PROP-RESET"],
+      "coverageIds": ["COV-RESET"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-3",
+      "moduleIds": ["marquee10"],
+      "algorithmIds": ["algo-onehot-rotate"],
+      "scenarioIds": ["SCN-BOUNDARY"],
+      "oracleIds": ["ORC-STEP-PERIOD"],
+      "propertyIds": ["PROP-HOLD"],
+      "coverageIds": ["COV-STATES"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-4",
+      "moduleIds": ["marquee10"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCN-SMOKE"],
+      "oracleIds": ["ORC-ONEHOT"],
+      "propertyIds": ["PROP-ONEHOT"],
+      "coverageIds": ["COV-STATES"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    }
+  ]
+}

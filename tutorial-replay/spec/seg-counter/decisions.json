@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "decisions",
+  "items": [
+    {
+      "id": "DEC-SEG-LOW-ACTIVE",
+      "title": "段线低电平点亮（共阳段码表）",
+      "decision": "seg_o 采用低有效段码（0→8'hC0 … 9→8'h90，dp 恒灭）",
+      "rationale": "板载 FJ3461AH 经电阻网络驱动，业界共阳数码管惯例为低电平点亮段；上板若整段相反，把查表值按位取反即可（一处改动）",
+      "alternatives": "高有效段码（若实测极性相反，改 SEG_TABLE 或输出取反）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-SEL-ONEHOT-HIGH",
+      "title": "位选 one-hot 高电平选通",
+      "decision": "sel_o 每位高有效，任一时刻恰一位为高",
+      "rationale": "FJ3461AH 位选经三极管驱动，假设高电平选通；若实测相反，在顶层映射处按位取反",
+      "alternatives": "低有效位选（若实测相反，顶层取反）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-BCD-CASCADE",
+      "title": "BCD 级联计数而非二进制计数+除法转换",
+      "decision": "用 8 个 4 位模 10 计数器级联直接维护十进制",
+      "rationale": "省去 32 位二进制转 BCD 的双浊点除法（double-dabble）或运行时除法逻辑；每 tick 只有变化位翻转，面积与时序最优",
+      "alternatives": "二进制计数 + double-dabble 转换（多一层组合逻辑）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-SYNC-LOGIC",
+      "title": "全部节拍用时钟使能，不分频时钟",
+      "decision": "计数节拍与扫描节拍均由使能计数器产生，所有寄存器共用 clk_i",
+      "rationale": "分频时钟驱动逻辑违反 RTL 规范第 9 条；单域设计让 SDC 与时序分析最简",
+      "alternatives": "1 kHz 扫描时钟域（被规范禁止）",
+      "status": "ACCEPTED"
+    }
+  ]
+}

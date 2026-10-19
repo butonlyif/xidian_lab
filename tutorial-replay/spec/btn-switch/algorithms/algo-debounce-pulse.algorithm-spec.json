@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "algorithm",
+  "id": "algo-debounce-pulse",
+  "title": "两级同步 + 稳定计数消抖 + 按下沿单脉冲",
+  "purpose": "把机械按键的异步抖动输入整理为时钟域内每按一次恰一个的单周期脉冲，同时以纯两级同步直采拨码电平。",
+  "principle": "按键先经 2 级同步链消除亚稳态；同步电平与已接受稳定电平比较，不同则稳定计数器累加，相同则清零；计数达到 DEBOUNCE_CYCLES-1 时接受新电平——若新电平为按下（0）且旧电平为释放（1），在该拍输出一个单周期脉冲。拨码每路只做 2 级同步。",
+  "invalidInputBehavior": "任何宽度小于 DEBOUNCE_CYCLES 的抖动都被拒判（计数中途回摆即清零），不存在误触发路径；DEBOUNCE_CYCLES>=4 由参数约束保证",
+  "tolerance": "精确——阈值判定，无数值容差",
+  "inputs": [
+    { "name": "btn_i", "type": "active-low-button", "width": "NUM_BTNS" },
+    { "name": "sw_i", "type": "positive-level", "width": "NUM_SW" }
+  ],
+  "outputs": [
+    { "name": "btn_pulse_o", "type": "single-cycle-pulse", "width": "NUM_BTNS" },
+    { "name": "sw_sync_o", "type": "synced-level", "width": "NUM_SW" }
+  ],
+  "steps": [
+    "每个 clk_i 上升沿：btn_i 与 sw_i 各自经 2 级同步链移位采样（ASYNC_REG）",
+    "按键：btn_sync2 != btn_stable 时 db_cnt 每拍 +1；相等时 db_cnt 清零",
+    "db_cnt == DEBOUNCE_CYCLES-1 的拍：btn_stable <= btn_sync2、db_cnt 清零；若新稳定为按下且旧稳定为释放，pulse 置 1",
+    "拨码：sw_sync_o <= 同步链第 2 级，纯电平跟随"
+  ],
+  "equations": [
+    "btn_sync2 <= btn_sync1; btn_sync1 <= btn_i",
+    "db_cnt_next = (btn_sync2 == btn_stable) ? 0 : (db_cnt == DEBOUNCE_CYCLES-1 ? 0 : db_cnt + 1)",
+    "accept = (btn_sync2 != btn_stable) && (db_cnt == DEBOUNCE_CYCLES-1)",
+    "btn_stable_next = accept ? btn_sync2 : btn_stable",
+    "pulse_next = accept && (btn_stable == 全 1) && (btn_sync2 含 0 位)",
+    "sw_sync_o <= sw_sync_r[1]"
+  ],
+  "boundaries": [
+    "低电平保持恰 DEBOUNCE_CYCLES-1 拍后回高：不触发脉冲（拒判边界）",
+    "低电平保持恰 DEBOUNCE_CYCLES 拍：触发脉冲（接受边界）",
+    "同步链初值为释放态：复位释放后不产生虚假按下脉冲"
+  ],
+  "numericPolicy": {
+    "overflow": "wrap",
+    "truncation": "none",
+    "binaryPoint": 0,
+    "intermediateWidth": "20"
+  },
+  "latencyCycles": 0,
+  "initiationIntervalCycles": 1,
+  "referenceModel": {
+    "language": "python",
+    "expression": "accepted = 0 if glitch_low_cycles < DEBOUNCE_CYCLES else 1; pulse_count = number of accepted press edges; sw_sync = sw delayed by 2 cycles"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "decisions",
+  "items": [
+    {
+      "id": "DEC-001",
+      "status": "ACCEPTED",
+      "question": "跑马灯 RTL 是重新生成还是复用 catalog jacket 基线？",
+      "decision": "逐字节复用 catalog t20f256-xd-ps-eval marquee jacket 的 RTL（REUSE_UNCHANGED，SHA-256 复核一致）",
+      "reason": "jacket 在同一板卡完成硬件验证，行为与本意图需求完全一致（10 LED one-hot、8 Hz、按键复位）；重新生成无增益且有引入回归的风险"
+    },
+    {
+      "id": "DEC-002",
+      "status": "ACCEPTED",
+      "question": "工程改名 marquee-lab 后接口基线如何处理？",
+      "decision": "不携带 jacket 原 peri.xml（其 netlist 锁绑定旧工程名）；以纯 pins 风格 ISF 让首次编译原生重建 peri.xml",
+      "reason": "实测改名后携带旧 peri.xml 必报 GPIO exists（review 案例 2026-10-17-marquee-lab-compile-baseline，EV-1）；pins ISF 重放安全且已双连 PASS（EV-2/EV-3）"
+    },
+    {
+      "id": "DEC-003",
+      "status": "ACCEPTED",
+      "question": "8 Hz 步进如何实现？",
+      "decision": "STEP_CYCLES = 6_250_000（50 MHz / 8 Hz），clock-enable 计数器产生单周期 step_tick，不派生分频时钟",
+      "reason": "满足 RTL 规范『禁止分频时钟驱动逻辑』；时序分析单一时钟域，实测 Fmax 190.8 MHz 余量充足"
+    },
+    {
+      "id": "DEC-004",
+      "status": "ACCEPTED",
+      "question": "仿真提速如何处理？",
+      "decision": "仿真参数覆盖 STEP_CYCLES = 4（生产默认 6_250_000 不变），复用 jacket 自带 tb_led_marquee 四性质自检",
+      "reason": "步进行为与 STEP_CYCLES 数值无关（参数化设计），提速不改变被验证性质；tb 已含 PROP-RESET/ONEHOT/ROTATE/HOLD 四性质断言"
+    },
+    {
+      "id": "DEC-005",
+      "status": "ACCEPTED",
+      "question": "仿真等级选择？",
+      "decision": "FPGA_FUNCTIONAL（服务端推荐，用户确认）",
+      "reason": "风险事实：单时钟域，无 CDC/FIFO/背压/共享总线/高速协议/自适应算法/不可逆控制/安全相关；阻塞义务 reset + main-flow + critical-boundary + integration-smoke 共 4 场景，在预算内（核心 2 + 边界 1 + 冒烟 1）"
+    }
+  ]
+}

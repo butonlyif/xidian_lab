@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 08 章 · 增量一：数码管</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="08">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 08</div>
+  <h1>增量一：数码管扫描计数器</h1>
+  <p class="sub">第一个并行意图：隔离 worktree 里的独立全链，以及两个新的时序陷阱。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>在基线之上建立 <code>seg-counter</code> 意图：8 位数码管、每秒 +1 的十进制计数、1 ms/位扫描显示——
+  并理解并行意图的 worktree 机制。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>开意图，拿到自己的 worktree</h3>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>我想再加个数码管的功能：板上那排数码管显示一个计数，从零开始每秒加一就行，还用之前那套流程做。</pre>
+    </div>
+    <p>与基线意图不同，控制面这次自动创建了一个<b>隔离 worktree</b>：</p>
+    <div class="codeblock"><pre><span class="g">intentExecutions:</span>
+  intentId:    seg-counter
+  branch:      codex/intent-seg-counter
+  worktreePath: D:\work\xidian_lab\.evoverse-worktrees\marquee-lab\seg-counter
+  baseCommit:  1bbe971（当前 master）</pre></div>
+    <div class="status-line ok">✓ intentId: seg-counter · 隔离 worktree 就绪</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 「并行」的物理形态</summary>
+      <div class="body">
+        <p>这就是「并行」的物理形态：第 09 章的第二个意图会得到自己的 <code>codex/intent-btn-switch</code> 分支，
+        两边互不踩脚。</p>
+        <p>增量意图基于当前基线开工——<code>baseCommit: 1bbe971（当前 master）</code> 就是这次增量的落点。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>规格包的模块级形态</h3>
+    <p class="why">这一步在做什么：与第 04 章同构，但注意两处差异——materials 至少要有一个（哪怕只是「数码管管脚参考」的 REFERENCE_ONLY 契约）；
+    模块没有 data 输入时 connections 可以为空。</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>spec/seg-counter/
+├── system-spec.json          <span class="k"># REQ-1 计数(1Hz+回绕) REQ-2 复位全灭 REQ-3 扫描one-hot REQ-4 段码表</span>
+├── modules/seg_display8.module-spec.json
+│     <span class="k"># 参数 TICK_CYCLES=50M / SCAN_CYCLES=50K；端口 clk/rst/seg_o[7:0]/sel_o[7:0]</span>
+│     <span class="k"># dataObjects: tick_cnt, scan_cnt, scan_idx, bcd_digits, seg_code_r</span>
+├── materials/mat-seg-panels.material-contract.json   <span class="k"># 16 个数码管管脚的参考契约</span>
+├── algorithms/algo-bcd-scan.algorithm-spec.json     <span class="k"># BCD 级联 + one-hot 扫描 + 查表</span>
+├── verification/…（4 场景 / 4 判定器 / 4 性质 / 2 覆盖）
+├── decisions.json            <span class="k"># 段低有效 / 位选高有效 / BCD 级联 / 时钟使能</span>
+└── traceability.json</pre></div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 两个节拍参数</summary>
+      <div class="body">
+        <p><code>TICK_CYCLES=50M</code> —— 数数节拍，每秒 +1；</p>
+        <p><code>SCAN_CYCLES=50K</code> —— 扫描节拍，每位选通 1 ms，8 位一圈 8 ms。</p>
+        <p>两个节拍都靠时钟使能驱动（decisions.json 里的「时钟使能」决策），全部单时钟域。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>RTL 要点与词法陷阱再临</h3>
+    <p>实现核心（全部单时钟域、时钟使能语义）：8 个 4 位 BCD 位做模 10 级联进位；
+    扫描索引模 8 循环驱动 one-hot 位选；段码 10 项查表（0→8'hC0 … 9→8'h90）。</p>
+    <div class="story">
+      <span class="tag">翻车实录</span>这次 <code>candidate.deliver</code> 撞上的是第 05 章预告的同族陷阱，两个新面孔：
+      进位链的比较括号、紧跟 if 的 endcase——都被当成「missing module」拒收。
+      照右栏的语义等价改写逐一修掉。
+    </div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 报错原文（两个新面孔）</summary>
+      <div class="body">
+        <pre><span class="r">referenced missing module co0 … co6   ← wire co0 = en0 &amp;&amp; (d0 == 4'd9);   （比较的括号贴出了 IDENT IDENT (）</span>
+<span class="r">referenced missing module endcase      ← endcase 之后紧跟 if (…）</span></pre>
+        <p>修法依旧是语义等价改写：进位链去掉比较括号（<code>==</code> 优先级本来就高于 <code>&amp;&amp;</code>）；
+        testbench 里把 case 选位改成三元链，从词法上根除 endcase。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix">
+      <summary>修复 · iverilog 报「找不到顶层模块」</summary>
+      <div class="body">
+        <p>另一个工程教训：用 PowerShell 的 <code>Set-Content</code> 改过源码后 iverilog 报「找不到顶层模块」——
+        那是 UTF-16 编码把中文注释变成了乱码，转回 UTF-8 即好。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>时序陷阱：段码呈现的「1 拍滞后」</h3>
+    <p class="why">这一步在做什么：段码寄存器每拍按当前位查表——当数字变化的那一拍，管脚上还是上一个数字的段码。</p>
+    <div class="story">
+      <span class="tag">翻车实录</span>第一版 testbench 用 TICK=4（每 4 拍数字 +1）、SCAN=8（每位亮 8 拍）快速仿真，
+      段码核对挂了 11 次——错误全部是「显示的是上一个数字」（报错原文见右栏）。两层修正后转绿。
+    </div>
+    <p>两层修正：</p>
+    <ul>
+      <li><b>参数比例贴近上板</b>：TICK 改 64（≥ 8×SCAN），让每位选通期间数字恒定——上板参数（1 s ≫ 8 ms）天然满足这个比例；</li>
+      <li><b>核对窗口避开变化拍</b>：只在「选通稳定且数字未变」的拍上对表（段码呈现滞后 1 拍是设计行为，写进注释）。</li>
+    </ul>
+    <div class="status-line ok">✓ TB-RESULT.PASS · evidence sim-c187f06b2b1d</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 报错原文（挂 11 次）</summary>
+      <div class="body">
+        <pre><span class="r">FAIL ORC-SEG-DECODE digit=1 seg=c0 exp=f9</span></pre>
+      </div>
+    </details>
+    <details class="aside-card a-status" open>
+      <summary>状态 · PASS 与证据 ID</summary>
+      <div class="body">
+        <pre><span class="g">TB-RESULT.PASS (1100 samples, 17 count-changes, 137 rotates)</span>
+<span class="g">evidence sim-c187f06b2b1d → asset module:seg_display8 QUALIFIED</span></pre>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>晋级 = 进集成队列</h3>
+    <p>与基线意图不同，并行意图 promote 后并不直接安装新基线，而是进入<b>集成队列</b>：</p>
+    <div class="codeblock"><pre><span class="g">SYSTEM_INTEGRATION::seg-counter   kind: FEATURE_MERGE   state: QUEUED   queuePosition: 2</span>
+<span class="g">SYSTEM_INTEGRATION::btn-switch    kind: FEATURE_MERGE   state: QUEUED   queuePosition: 1</span></pre></div>
+    <div class="status-line ok">✓ promote 通过 · seg-counter 进队列（position 2）</div>
+    <div class="story">
+      <span class="tag">翻车实录</span>promote 对 worktree 的硬规矩同样是实测撞出来的：worktree 不干净、
+      分支里混进候选没声明过的文件，都会被拒——报错码与解法组合见右栏。
+    </div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · INTENT_WORKTREE_DIRTY / SMUGGLED_DELIVERY_CHANGES</summary>
+      <div class="body">
+        <p>promote 对 worktree 还有一条硬规矩（都是实测撞出来的）：提交前 worktree 必须干净（<code>INTENT_WORKTREE_DIRTY</code>），
+        且 intent 分支上<b>只能包含候选声明过的文件</b>（<code>SMUGGLED_DELIVERY_CHANGES</code>——连 spec 包和仿真 run 工件都算「走私」）。</p>
+        <p><b>解法组合：</b>分支提交只放 <code>rtl/seg_display8.sv + sim/tb_seg_display8.sv</code>，
+        spec 包等支撑文件用仓库级 <code>.git/info/exclude</code> 排除（不进任何提交，又 physically 存在供控制面解析）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<div class="card watch-card">
+  <div class="tag">👀 观察文件</div>
+  <p>本章新增：<code>rtl/seg_display8.sv</code>、<code>sim/tb_seg_display8.sv</code>、
+  <code>spec/seg-counter/</code>（主根 + worktree 各一份）；worktree 的分支上只有两个源文件的一个提交
+  （实测 34b1875）。数码管 16 个管脚的 ISF 行留到第 10 章集成时统一落。</p>
+</div>
+
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>第一个增量在隔离分支上完成全链并排队等待集成。第 09 章开第二个并行意图：按键消抖 + 拨码采样——
+  它的精彩之处在于一条「19 拒 20 收」的阈值边界语义。</p>
+</section>
+<div class="ch-nav"><a href="07-program.html">← 上一章</a><a href="09-increment-btn.html">下一章：增量二·按键拨码 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

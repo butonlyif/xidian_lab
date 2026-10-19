@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T20F256 全流程实战 · 目录</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="index">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+  <div class="hero">
+    <h1>从零到上板：T20F256 上的 EvoVerse 全流程实战</h1>
+    <p>一块 Trion T20F256 评估板，三个功能，两次并行增量，一份真实的工程日志。</p>
+    <p>本教程里出现的每一条命令输出、每一份报告、每一个报错——都来自一次真实、完整的跑通。</p>
+    <div class="chips">
+      <span>10-LED 跑马灯（基线）</span><span>8 位数码管计数器（增量一）</span>
+      <span>按键 + 拨码 + 蜂鸣器（增量二）</span><span>板未连接 · 讲预期现象与排查</span>
+    </div>
+  </div>
+
+  <h2>你会经历什么</h2>
+  <p>教程按真实的开发顺序推进：先把环境装起来、把骨架工程编译通过，然后用 EvoVerse 的「控制面」走一条
+  <b>意图 → 规格 → 候选 → 仿真 → 晋级 → 原生编译</b> 的可靠设计链路；基线立住之后，再开两个并行的增量
+  （各自有隔离的 git worktree），最后把三个模块集成到一个顶层、完成最终编译。</p>
+
+  <h2>进度</h2>
+  <div class="progress-bar"><div id="progress-fill"></div></div>
+  <div id="progress-label" class="progress-note">已读 0 / 12 章</div>
+
+  <h2>章节</h2>
+  <div class="ch-grid">
+    <a class="ch" href="01-environment.html"><span class="no">第 01 章</span><b>装好整套环境</b><small>空白 Windows → Trae → SDK → Catalog → iverilog → Efinity</small></a>
+    <a class="ch" href="02-board.html"><span class="no">第 02 章</span><b>认识这块板子</b><small>LED / 数码管 / 按键 / 拨码 / 蜂鸣器 / VGA / 串口</small></a>
+    <a class="ch" href="03-new-project.html"><span class="no">第 03 章</span><b>创建第一个工程</b><small>一句话生成 stage0 骨架并真实编译通过</small></a>
+    <a class="ch" href="04-intent-spec.html"><span class="no">第 04 章</span><b>意图与规格</b><small>控制面全链 + 16 条规格错误排障实录</small></a>
+    <a class="ch" href="05-candidate-sim.html"><span class="no">第 05 章</span><b>候选与仿真</b><small>冻结候选、EVOVERSE_PROPERTY 事件、仿真 PASS</small></a>
+    <a class="ch" href="06-native-build.html"><span class="no">第 06 章</span><b>原生编译</b><small>一句话触发编译、int 类型翻车、Workbench 看报告</small></a>
+    <a class="ch" href="07-program.html"><span class="no">第 07 章</span><b>烧录与上板</b><small>板没连也不慌：预期现象与排查清单</small></a>
+    <a class="ch" href="08-increment-seg.html"><span class="no">第 08 章</span><b>增量一 · 数码管</b><small>并行 worktree 里的独立增量全链</small></a>
+    <a class="ch" href="09-increment-btn.html"><span class="no">第 09 章</span><b>增量二 · 按键拨码</b><small>消抖阈值边界：19 拒 20 收</small></a>
+    <a class="ch" href="10-integration.html"><span class="no">第 10 章</span><b>三模块集成</b><small>42 个管脚、最终编译、资源报告解读</small></a>
+    <a class="ch" href="11-troubleshooting.html"><span class="no">第 11 章</span><b>排错手册</b><small>本次实战踩过的全部坑，一条一条讲清楚</small></a>
+    <a class="ch" href="12-roadmap.html"><span class="no">第 12 章</span><b>下一步 · RISC-V</b><small>纯 RTL 之后，软件栈往哪走</small></a>
+  </div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

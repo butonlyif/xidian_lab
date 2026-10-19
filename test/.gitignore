@@ -1,0 +1,8 @@
+# Efinity build outputs (regenerated every compile)
+marquee-lab/outflow/
+marquee-lab/work_syn/
+marquee-lab/work_pnr/
+marquee-lab/work_dbg/
+
+# Compile stdout logs (durable copies live in project-review/*/evidence/)
+marquee-lab/*.log

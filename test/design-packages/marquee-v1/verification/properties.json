@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "properties",
+  "items": [
+    {
+      "id": "PROP-001",
+      "ruleId": "rtl.reset.async-assert-sync-release",
+      "moduleId": "marquee-core",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "rst_sync_r[2] 上升（复位同步释放完成）",
+      "consequent": ["led_r == one-hot bit0", "cnt_r == 0"],
+      "observedSignals": ["rst_sync_r", "led_o", "cnt_r"],
+      "requiredActivations": 1
+    },
+    {
+      "id": "PROP-002",
+      "ruleId": "rtl.sequential.onehot-invariant",
+      "moduleId": "marquee-core",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "复位释放后任意时钟周期",
+      "consequent": ["popcount(led_o) == 1"],
+      "observedSignals": ["led_o"],
+      "requiredActivations": 10
+    },
+    {
+      "id": "PROP-003",
+      "ruleId": "rtl.timing.clock-enable-period",
+      "moduleId": "marquee-core",
+      "clock": "clk_i",
+      "reset": "rst_n_i",
+      "antecedent": "led_o 在周期 T 发生翻转",
+      "consequent": ["下一次翻转恰在 T + STEP_CYCLES 周期", "两翻转之间 led_o 保持不变"],
+      "observedSignals": ["led_o", "cnt_r"],
+      "requiredActivations": 10
+    }
+  ]
+}

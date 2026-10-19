@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "coverage",
+  "items": [
+    {
+      "id": "COV-DIGITS",
+      "moduleId": "seg_display8",
+      "definition": "数字 0..9 全部至少显示过一次",
+      "rule": "仿真全程在每个扫描稳定窗口记录选通位 BCD 值，0..9 每个值至少出现一次即达成"
+    },
+    {
+      "id": "COV-SCAN-POS",
+      "moduleId": "seg_display8",
+      "definition": "8 个数位全部被选通过至少一次",
+      "rule": "仿真全程记录 sel_o 的选通位索引，0..7 每个索引至少出现一次即达成"
+    }
+  ]
+}

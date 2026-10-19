@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "module",
+  "id": "segcount-display",
+  "moduleName": "seg7_counter",
+  "title": "参数化数码管十进制计数显示核",
+  "purpose": "单时钟域 BCD 十进制计数（每 TICK_CYCLES 加一，10^DIGITS 回绕）+ 数码管动态扫描显示（one-hot 位选、0-9 段译码、前导零消隐）；驱动极性参数化（默认共阴：位选低有效、段高点亮）；复位异步断言、3 级同步器同步释放。",
+  "responsibilities": [
+    "产生周期 TICK_CYCLES 的 1 Hz 计数节拍（clock enable，不派生时钟）",
+    "维护 DIGITS 位 BCD 计数：进位链递增，全 9 回绕归零",
+    "产生周期 SCAN_CYCLES 的扫描节拍与 0..DIGITS-1 循环位索引",
+    "输出当前扫描位的段译码（含消隐）与 one-hot 位选，按极性参数映射后寄存输出"
+  ],
+  "nonResponsibilities": [
+    "数码管管脚与 IO 电平分配（板级约束，由 pins ISF 承担）",
+    "驱动极性的物理确认（共阴/共阳为参数化假设，板上验证）",
+    "位序物理布局确认（假设 sel1=最低位/最右，板上验证）",
+    "跑马灯功能（基线模块 u_marquee 承担，本模块不触碰）"
+  ],
+  "parameters": [
+    {
+      "name": "DIGITS",
+      "type": "integer",
+      "default": 8,
+      "constraints": ["板上固定 8（2x FJ3461AH）", "仿真旁证实例取 2 以验证回绕"],
+      "behavioralEffect": "BCD 位宽与回绕上限 10^DIGITS-1；位选总线宽度"
+    },
+    {
+      "name": "TICK_CYCLES",
+      "type": "integer",
+      "default": 50000000,
+      "constraints": ["TICK_CYCLES = f_clk / f_count；50 MHz / 1 Hz", "仿真提速取 4"],
+      "behavioralEffect": "计数频率：每 TICK_CYCLES 个时钟周期计数值加一"
+    },
+    {
+      "name": "SCAN_CYCLES",
+      "type": "integer",
+      "default": 6250,
+      "constraints": ["SCAN_CYCLES = f_clk / (刷新率 x DIGITS)；6250 → 1 kHz 刷新", "仿真提速取 2"],
+      "behavioralEffect": "每位点亮时长与整屏刷新率"
+    },
+    {
+      "name": "SEG_ACTIVE_HIGH",
+      "type": "bit",
+      "default": 1,
+      "constraints": ["共阴假设=1（板上待确认）", "共阳=0"],
+      "behavioralEffect": "段输出极性映射（译码结果或其反相）"
+    },
+    {
+      "name": "DIG_ACTIVE_LOW",
+      "type": "bit",
+      "default": 1,
+      "constraints": ["共阴假设=1（板上待确认）", "共阳=0"],
+      "behavioralEffect": "位选输出极性映射（one-hot 或其反相）"
+    }
+  ],
+  "ports": [
+    {
+      "name": "clk_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_board_n",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "rst_n_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_board_n",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "seg_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "8",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_board_n",
+      "protocolRole": "data",
+      "idleValue": "8'b0（复位后全灭）"
+    },
+    {
+      "name": "dig_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "DIGITS",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_board_n",
+      "protocolRole": "data",
+      "idleValue": "全 1（共阴：全不选通）"
+    }
+  ],
+  "dataObjects": [
+    {
+      "name": "tick_cnt_r",
+      "role": "1 Hz 计数节拍计数器（clock enable）",
+      "width": "26",
+      "resetValue": 0,
+      "updateCondition": "每个 clk_i +1；计满 TICK_CYCLES-1 产生单周期 tick_1hz 并清零（$clog2(50_000_000)=26）",
+      "ownership": "owned"
+    },
+    {
+      "name": "scan_cnt_r",
+      "role": "扫描节拍计数器",
+      "width": "13",
+      "resetValue": 0,
+      "updateCondition": "每个 clk_i +1；计满 SCAN_CYCLES-1 产生 scan_tick 并清零（$clog2(6250)=13）",
+      "ownership": "owned"
+    },
+    {
+      "name": "scan_idx_r",
+      "role": "当前扫描位索引（0..DIGITS-1 循环）",
+      "width": "3",
+      "resetValue": 0,
+      "updateCondition": "scan_tick 时 +1，到 DIGITS-1 回 0",
+      "ownership": "owned"
+    },
+    {
+      "name": "bcd_r",
+      "role": "DIGITS 位 BCD 计数值（idx0=最低位）",
+      "width": "32",
+      "resetValue": 0,
+      "updateCondition": "tick_1hz 时进位链 +1；全 9 回绕归零",
+      "ownership": "owned"
+    },
+    {
+      "name": "seg_r",
+      "role": "段输出寄存器（极性映射后）",
+      "width": "8",
+      "resetValue": 0,
+      "updateCondition": "每 clk 按当前位译码/消隐 + SEG_ACTIVE_HIGH 映射更新",
+      "ownership": "owned"
+    },
+    {
+      "name": "dig_r",
+      "role": "位选输出寄存器（one-hot + 极性映射）",
+      "width": "DIGITS",
+      "resetValue": "全 1（不选通）",
+      "updateCondition": "每 clk 按 scan_idx_r one-hot + DIG_ACTIVE_LOW 映射更新",
+      "ownership": "owned"
+    }
+  ],
+  "stateMachines": [],
+  "behavior": {
+    "latencyCycles": 1,
+    "initiationIntervalCycles": 50000000,
+    "backpressure": "无：自由运行的显示驱动输出，无握手",
+    "errors": "无错误态：BCD 结构性合法，同步复位保证确定性初值"
+  },
+  "algorithmIds": [],
+  "requirementIds": ["REQ-101", "REQ-102", "REQ-103", "REQ-104"],
+  "propertyIds": ["PROP-101", "PROP-102", "PROP-103", "PROP-104"]
+}

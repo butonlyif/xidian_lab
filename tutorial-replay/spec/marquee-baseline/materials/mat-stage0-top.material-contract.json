@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "material",
+  "id": "mat-stage0-top",
+  "title": "stage0 板级顶层骨架（clk_50m / arst_n / led_user 管脚映射）",
+  "purpose": "复用 stage0 编译已验证的板级顶层：50 MHz 时钟输入、按键低有效复位输入与用户 LED 输出管脚的完整映射，作为基线设计的集成宿主。",
+  "selectionReason": "stage0 已在真实工具链上四阶段编译 PASS（map/pnr/pgm），管脚 H13/A4/T8 落针实证，是本工程最可信的板级物料。",
+  "function": "提供板级时钟与复位入口、10 个用户 LED 管脚出口；接纳 marquee10 例化并把灯总线扇出到管脚。",
+  "classification": "ADAPT_REQUIRED",
+  "source": {
+    "kind": "catalog-jacket",
+    "uri": "rtl/top.v（stage0 skeleton，t20f256_xd_ps_eval_stage0）",
+    "version": "1.0.0",
+    "license": "EVOVERSE SDK 教程样例，随工程分发",
+    "digest": "839e5208e63620f5b98a010b8f648e8d22ad342853ae3c767b9b5aeb6804a7d0"
+  },
+  "ports": [
+    {
+      "name": "led_bus_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "10",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "clk_50m",
+      "direction": "input",
+      "type": "clock",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m"
+    },
+    {
+      "name": "arst_n",
+      "direction": "input",
+      "type": "async-reset-active-low",
+      "signed": false,
+      "width": "1",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user2",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user3",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user4",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user5",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user6",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user7",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user8",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user9",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "led_user10",
+      "direction": "output",
+      "type": "gpio",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    }
+  ],
+  "applicability": {
+    "device": "Trion T20F256（t20f256-xd-ps-eval）",
+    "ioStandard": "3.3 V LVTTL / LVCMOS",
+    "ledPolarity": "high-level-lights",
+    "clockSource": "50 MHz 板载晶振 @ H13"
+  },
+  "invalidationConditions": [
+    "更换板卡或载体导致管脚映射变化（ISF 引脚分配不同）",
+    "LED 极性改为低电平点亮的板卡变体",
+    "时钟源频率不再是 50 MHz"
+  ],
+  "integrationChecks": [
+    "输入端口 led_bus_i（10 位）由 u_marquee.led_bus_o 驱动，顶层内部把 10 位总线逐位映射到 led_user..led_user10 十个输出管脚",
+    "顶层例化 u_stage0_top 的端口名与本契约 ports 完全一致",
+    "ISF 中 led_user..led_user10 十个管脚均已 assign_pkg_pin 且 IO_STANDARD 为 3.3 V LVTTL / LVCMOS",
+    "编译后 pinout.rpt 中无管脚冲突，clk_50m=H13、arst_n=A4 保持不变"
+  ],
+  "evidence": [
+    {
+      "scope": "stage0 编译（2026-10-16）：efx_map / efx_pnr / efx_pgm 全 PASS，H13/A4/T8 落针与 Fmax 399.521 MHz 实证",
+      "kind": "build-log"
+    }
+  ]
+}

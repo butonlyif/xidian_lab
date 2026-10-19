@@ -1,0 +1,33 @@
+# EvoVerse SDK marquee design -- t20f256_xd_ps_marquee
+# Board IO-bank voltages (board-level, from carrier ISF).
+design.set_device_property("1A","VOLTAGE","3.3","IOBANK")
+design.set_device_property("1B_1C","VOLTAGE","3.3","IOBANK")
+design.set_device_property("1D_1E","VOLTAGE","3.3","IOBANK")
+design.set_device_property("3A_3B_3C","VOLTAGE","3.3","IOBANK")
+design.set_device_property("3D_3E","VOLTAGE","3.3","IOBANK")
+design.set_device_property("4A","VOLTAGE","3.3","IOBANK")
+design.set_device_property("4B","VOLTAGE","3.3","IOBANK")
+# 50 MHz system clock input (bank 3D_3E), GCLK connection
+# §15 bootstrap: create_* is a one-shot ritual for a peri.xml-less project.
+# Unified Flow auto-infers these plain RTL-port GPIOs at map stage, so the
+# create_* lines MUST stay commented for replay builds (otherwise
+# "GPIO xxx exists" / "Bus name is used"). Enable ONLY when bootstrapping
+# without peri.xml.
+# design.create_input_clock_gpio("clk_50m_i")  # [enabled for bootstrap attempt, re-commented: unified netlist ISF auto-creates GPIOs]
+design.assign_pkg_pin("clk_50m_i","H13")
+design.set_property("clk_50m_i","IO_STANDARD","3.3 V LVTTL / LVCMOS","GPIO")
+# design.create_input_gpio("arst_n_i")  # [re-commented: unified netlist ISF auto-creates GPIOs]
+design.assign_pkg_pin("arst_n_i","A4")
+design.set_property("arst_n_i","IO_STANDARD","3.3 V LVTTL / LVCMOS","GPIO")
+# design.create_output_gpio("led_o", 9, 0)  # [re-commented: unified netlist ISF auto-creates GPIOs]
+design.set_property("led_o","IO_STANDARD","3.3 V LVTTL / LVCMOS","GPIO")
+design.assign_pkg_pin("led_o[0]","T8")
+design.assign_pkg_pin("led_o[1]","T9")
+design.assign_pkg_pin("led_o[2]","T10")
+design.assign_pkg_pin("led_o[3]","T11")
+design.assign_pkg_pin("led_o[4]","T12")
+design.assign_pkg_pin("led_o[5]","R13")
+design.assign_pkg_pin("led_o[6]","T14")
+design.assign_pkg_pin("led_o[7]","R14")
+design.assign_pkg_pin("led_o[8]","T15")
+design.assign_pkg_pin("led_o[9]","R15")

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "material",
+  "id": "mat-seg-panels",
+  "title": "板载数码管物料契约（2 片 FJ3461AH，8 段 × 8 位）",
+  "purpose": "记录 t20f256-xd-ps-eval 板载数码管的物理物料事实：段线与位选线经电阻网络（RN9/RN11）接到 FPGA 管脚，供 seg_display8 输出极性与管脚分配时参考。",
+  "selectionReason": "管脚来自板卡 pin map 的 SEG_DIG（8 段）与 SEG_DIG_SEL1..8（8 位选通）接口组，全部 3.3 V bank，是数码管物料的唯一权威来源。",
+  "function": "提供 8 段（a..dp）与 8 位选通的物理连接参考；本增量不改动板级顶层，仅在集成阶段扩展 ISF 管脚。",
+  "classification": "REFERENCE_ONLY",
+  "source": {
+    "kind": "catalog-board-pinout",
+    "uri": "catalog/boards/t20f256-xd-ps-eval/pinout/t20f256-xd-ps-eval.csv（SEG_DIG、SEG_DIG_SEL1..8 行）",
+    "version": "0.1.0",
+    "license": "EVOVERSE 板卡目录，随工程分发",
+    "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "ports": [
+    {
+      "name": "seg_pins_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "8",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "sel_pins_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "8",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    }
+  ],
+  "applicability": {
+    "device": "Trion T20F256（t20f256-xd-ps-eval）",
+    "ioStandard": "3.3 V LVTTL / LVCMOS",
+    "segments": "a=C6, b=C5, c=B7, d=C8, e=A9, f=B6, g=B5, dp=C7",
+    "digitSelects": "sel1=A10, sel2=C10, sel3=C11, sel4=C9, sel5=C12, sel6=C13, sel7=C14, sel8=B9"
+  },
+  "invalidationConditions": [
+    "更换板卡导致数码管管脚映射变化",
+    "驱动极性（共阳/共阴）或位选有效电平不同的板卡变体"
+  ],
+  "integrationChecks": [
+    "集成阶段 ISF 中 16 个数码管管脚均已 assign_pkg_pin 且 IO_STANDARD 为 3.3 V LVTTL / LVCMOS",
+    "段与位选的极性假设与 DEC-SEG-LOW-ACTIVE / DEC-SEL-ONEHOT-HIGH 一致，若上板实测相反按决策记录取反"
+  ],
+  "evidence": [
+    {
+      "scope": "板卡 pin map 解析：SEG_DIG 与 SEG_DIG_SEL1..8 共 16 管脚实证",
+      "kind": "pinout-report"
+    }
+  ]
+}

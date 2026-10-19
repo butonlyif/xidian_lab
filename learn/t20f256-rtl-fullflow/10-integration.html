@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 10 章 · 三模块集成</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="10">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 10</div>
+  <h1>三模块集成与最终编译</h1>
+  <p class="sub">顶层只做例化与连线；ISF 扩到 42 个管脚；看懂最终的四阶段 PASS 与资源报告。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>把 marquee10、seg_display8、input_ctrl 例化进同一个顶层，补齐全部管脚约束，完成整个教程的最终编译。</p>
+</section>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>集成叙事：连接什么、不连接什么</h3>
+    <p class="why">这一步在做什么：集成不是「把线都连起来」。三个模块的规格边界决定了它们在本迭代的关系——
+    共板共存 + 一条最小可视化连线。</p>
+    <ul>
+      <li><b>marquee10</b> → 10 个 LED（基线资产，端口不动）</li>
+      <li><b>seg_display8</b> → 16 个数码管管脚（自由计数显示）</li>
+      <li><b>input_ctrl</b> → 按键/拨码输入；<b>BUT2 的消抖脉冲直连蜂鸣器</b>（按一下响一拍——纯连线，零新增逻辑）</li>
+    </ul>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>三个功能都齐了，把它们合到一个工程里编译出最终版本吧，要用的管脚都从板卡资料里查。</pre>
+    </div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-branch" open>
+      <summary>可能 · 拨码通道本迭代不接负载</summary>
+      <div class="body">
+        <p>拨码通道 <code>sw_sync_o</code> 本迭代<b>不接负载</b>：综合器会把它优化掉，这是正确行为；
+        把拨码真正用起来（比如控制跑马灯方向）需要给 marquee10 加端口——那是下一个迭代的新意图，不是集成时顺手改。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 蜂鸣器为什么零新增逻辑</summary>
+      <div class="body">
+        <p>第 09 章消抖器的输出 <code>btn_pulse</code> 本身就是单周期脉冲，所以
+        <code>buzzer = btn_pulse[0]</code> 是纯连线：按一下 BUT2（有效按压 &gt;20 ms）蜂鸣器响一拍。
+        集成阶段不写任何新逻辑，只做例化与连线。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>顶层结构（节选）</h3>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>marquee10      #(.NUM_LEDS(10), .STEP_CYCLES(STEP_CYCLES))  u_marquee      (…led_bus);
+seg_display8   #(.TICK_CYCLES(50_000_000), .SCAN_CYCLES(50_000)) u_seg_display8 (…seg_bus, sel_bus);
+input_ctrl     #(.NUM_BTNS(3), .NUM_SW(10), .DEBOUNCE_CYCLES(1_000_000)) u_input_ctrl (…btn_pulse, sw_sync);
+
+assign btn_bus = {user_btn4, user_btn3, user_btn2};   <span class="k">// bit0 = BUT2</span>
+assign sw_bus  = {dip_sw10, …, dip_sw1};              <span class="k">// bit0 = SW1</span>
+assign buzzer  = btn_pulse[0];                         <span class="k">// 按一下，响一拍</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>三个例化的参数全部沿用各自规格原值，端口名与第 08/09 章规格一致。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · u_input_ctrl 的端口分配原理</summary>
+      <div class="body">
+        <p><code>btn_bus = {user_btn4, user_btn3, user_btn2}</code>——拼接后 <b>bit0 = BUT2</b>，
+        所以 <code>btn_pulse[0]</code> 正是 BUT2 的消抖脉冲，<code>buzzer = btn_pulse[0]</code> 即「按 BUT2 响一拍」。</p>
+        <p><code>sw_bus</code> 同理：bit0 = SW1，从 SW1 排到 SW10。参数侧
+        <code>NUM_BTNS(3)</code>、<code>NUM_SW(10)</code>、<code>DEBOUNCE_CYCLES(1_000_000)</code>
+        全部按第 09 章规格原值例化，仿真里的 DEB=20 只是提速替身。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>ISF 一次性扩容与最终编译</h3>
+    <p class="why">这一步在做什么：30 个新管脚全部来自第 02 章那张 CSV；写法与之前完全一致——
+    幂等的 assign/set，create_* 依旧注释着。XML 里 design_file 变成四行。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>管脚约束和顶层都扩好了，跑最终编译，完了把资源报告给我看看。</pre>
+    </div>
+    <p>Trae 在后台跑的最终编译（真实输出）：</p>
+    <div class="codeblock"><pre>   map :        <span class="g">PASS</span>
+   interface :  <span class="g">PASS</span>      <span class="k"># peri.xml 增至 42 个 GPIO</span>
+   pnr :        <span class="g">PASS</span>
+   pgm :        <span class="g">PASS</span>
+
+<span class="k"># ISF 复验（引导后重放）：interface PASS 即官方重放安全证明——</span>
+<span class="k"># 每次编译都会把 ISF 完整重放一遍；另核对 peri.xml：42 个 GPIO 全部 3.3 V LVTTL / LVCMOS</span></pre></div>
+    <div class="status-line ok">✓ map / interface / pnr / pgm 四阶段全 PASS · 42 个 GPIO</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 最终编译</summary>
+      <div class="body">
+        <p>四阶段全 PASS；<code>peri.xml</code> 增至 <b>42 个 GPIO</b>，全部 3.3 V LVTTL / LVCMOS。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 为什么 interface PASS = 重放安全</summary>
+      <div class="body">
+        <p>ISF 必须重放安全：只含幂等的 assign/set，<code>create_*</code> 是一次性 bootstrap、引导后注释着。
+        每次编译都会把 ISF 完整重放到已持久化的 <code>peri.xml</code> 上——
+        interface 阶段能 PASS，就是官方对「重放安全」的直接证明。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>读资源报告：谁花了什么</h3>
+    <div class="codeblock"><pre><span class="k"># outflow/marquee-lab.res.csv（实测节选）</span>
+Module                        FFs        ADDs       LUTs
+t20f256_xd_ps_eval_stage0    172(0)     81(0)     161(0)
+ +u_marquee:marquee10         44(44)    22(22)     20(20)
+ +u_seg_display8:seg_display8 98(98)    40(40)    110(110)
+ +u_input_ctrl:input_ctrl     30(30)     19(19)     31(31)   <span class="k"># 拨码通道按预期被裁剪</span></pre></div>
+    <div class="obs"><span class="tag">看什么</span>三个模块各自 FFs/ADDs/LUTs 的占比；<code>u_input_ctrl</code> 的
+    30/19/31 里能看出拨码通道被裁剪的痕迹——解读要点见右栏。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 读分层资源报告的三个要点</summary>
+      <div class="body">
+        <p>① 分层报告让你能对每个模块单独问责；② 数码管的 LUT（110）主要花在段码查表与 BCD 进位链；
+        ③ 没有负载的逻辑会被裁剪——「资源变少」有时不是优化好，是连线没接对。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>上板预期（连板后逐条勾选）</h3>
+    <table>
+      <tr><th>#</th><th>预期现象</th><th>不符时看哪里</th></tr>
+      <tr><td>1</td><td>10 个 LED 8 Hz 跑马（同第 07 章）</td><td>第 07 章清单</td></tr>
+      <tr><td>2</td><td>数码管显示 <b>00,000,000 起每秒 +1</b>，全帧约 125 Hz 刷新（无闪烁感）</td><td>不计数 → TICK 分频；闪烁 → SCAN 太慢</td></tr>
+      <tr><td>3</td><td>按住 BUT1：LED 全灭<b>且数码管全灭</b>（段全灭、无位选）</td><td>复位期间输出极性</td></tr>
+      <tr><td>4</td><td>快速按一下 BUT2（&gt;20 ms）：蜂鸣器短鸣一声</td><td>无声 → buzzer 极性/驱动假设</td></tr>
+      <tr><td>5</td><td>轻点 BUT2（&lt;20 ms 的抖动）：不响</td><td>消抖阈值</td></tr>
+      <tr><td>6</td><td>数码管「全亮/全暗反转」或「8 变全灭」→ 段极性假设不符</td><td>DEC-SEG-LOW-ACTIVE：查表取反一处改</td></tr>
+    </table>
+    <p>最后用 <code>build.native</code> 登记集成构建证据，git 提交集成版。至此工程侧闭环全部完成。</p>
+    <div class="status-line ok">✓ bld-0f5be188c077 / NATIVE_BUILT / PASS · git 9045ff0</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 集成证据</summary>
+      <div class="body">
+        <p><code>build.native</code> 登记集成构建证据：实测 <code>bld-0f5be188c077 / NATIVE_BUILT / PASS</code>。</p>
+        <p>git 提交集成版：实测 <code>9045ff0</code>。</p>
+        <p>板级验证 <b>NOT_RUN</b>：上表六条是「连板后逐条勾选」的预期清单，未经硬件验证不得当作已验证结论。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<div class="card watch-card">
+  <div class="tag">👀 观察文件</div>
+  <p>最终形态：<code>rtl/</code> 四个文件、<code>sim/</code> 三个 testbench、<code>spec/</code> 三个规格包、
+  ISF 42 组管脚、XML 四行源文件；控制面里两个 FEATURE_MERGE 在集成队列等待系统整合动作，
+  证据向量 = 仿真 PASS ×3 + 原生构建 PASS ×2。</p>
+</div>
+
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>三个模块、两次并行、一次合流——整个纯 RTL 全流程走完了。第 11 章把一路踩过的坑编成速查手册，
+  第 12 章展望 RISC-V 的下一步。</p>
+</section>
+<div class="ch-nav"><a href="09-increment-btn.html">← 上一章</a><a href="11-troubleshooting.html">下一章：排错手册 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "traceability",
+  "items": [
+    {
+      "requirementId": "REQ-1",
+      "moduleIds": ["seg_display8"],
+      "algorithmIds": ["algo-bcd-scan"],
+      "scenarioIds": ["SCN-COUNT"],
+      "oracleIds": ["ORC-COUNT-INC"],
+      "propertyIds": ["PROP-COUNT-INC"],
+      "coverageIds": ["COV-DIGITS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-2",
+      "moduleIds": ["seg_display8"],
+      "algorithmIds": ["algo-bcd-scan"],
+      "scenarioIds": ["SCN-RESET"],
+      "oracleIds": ["ORC-RESET-BLANK"],
+      "propertyIds": ["PROP-RESET-BLANK"],
+      "coverageIds": ["COV-SCAN-POS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-3",
+      "moduleIds": ["seg_display8"],
+      "algorithmIds": ["algo-bcd-scan"],
+      "scenarioIds": ["SCN-COUNT"],
+      "oracleIds": ["ORC-SCAN-ROUND"],
+      "propertyIds": ["PROP-SCAN-HOLD"],
+      "coverageIds": ["COV-SCAN-POS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    },
+    {
+      "requirementId": "REQ-4",
+      "moduleIds": ["seg_display8"],
+      "algorithmIds": ["algo-bcd-scan"],
+      "scenarioIds": ["SCN-SMOKE"],
+      "oracleIds": ["ORC-SEG-DECODE"],
+      "propertyIds": ["PROP-SEG-DECODE"],
+      "coverageIds": ["COV-DIGITS"],
+      "softwareIds": [],
+      "softwareTestIds": []
+    }
+  ]
+}

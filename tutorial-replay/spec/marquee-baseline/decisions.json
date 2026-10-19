@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "decisions",
+  "items": [
+    {
+      "id": "DEC-POLARITY",
+      "title": "LED 高电平点亮",
+      "decision": "led_bus_o 位为 1 表示对应 LED 点亮",
+      "rationale": "t20f256-xd-ps-eval 载板用户 LED 为高电平点亮；板料文档与 stage0 观察一致",
+      "alternatives": "低电平点亮（若换板需反相输出）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-CLKEN",
+      "title": "时钟使能分频，不用分频时钟",
+      "decision": "所有逻辑运行在 50 MHz 单一域，用 step_cnt 产生使能脉冲",
+      "rationale": "分频时钟驱动逻辑违反 RTL 规范第 9 条，且恶化时序收敛与 CDC 分析",
+      "alternatives": "PLL 分频输出 8 Hz 时钟（被规范禁止）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-ONEHOT",
+      "title": "one-hot 码型而非二进制计数译码",
+      "decision": "直接寄存 one-hot 灯位，环形移位",
+      "rationale": "省去 4 位计数到 10 位译码逻辑，输出寄存器直接驱动管脚，时序路径最短",
+      "alternatives": "二进制计数 + 4-10 译码（额外 LUT 层级）",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "DEC-PARAM",
+      "title": "灯数与步进周期参数化",
+      "decision": "NUM_LEDS 与 STEP_CYCLES 作为模块参数，默认 10 与 6,250,000",
+      "rationale": "仿真可用缩小的 STEP_CYCLES 控制时长，上板用默认值得到 8 Hz 步进；同一份 RTL 覆盖两种场景",
+      "alternatives": "硬编码常量（仿真需 6.25M 周期，不可行）",
+      "status": "ACCEPTED"
+    }
+  ]
+}

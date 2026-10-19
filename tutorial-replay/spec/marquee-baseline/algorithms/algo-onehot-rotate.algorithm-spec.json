@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "algorithm",
+  "id": "algo-onehot-rotate",
+  "title": "one-hot 环形左移（时钟使能步进）",
+  "purpose": "用单一时钟域内的使能计数器产生均匀步进，并把 one-hot 码型环形推进，避免任何分频时钟。",
+  "principle": "N 位寄存器仅一位为 1；使能计数器每 STEP_CYCLES 周期回绕一次，回绕沿把 1 从 bit i 移到 bit (i+1) mod N；复位把 1 归位到 bit 0 且其余清零。",
+  "invalidInputBehavior": "复位有效时输出强制全零；STEP_CYCLES>=1 由参数约束保证，计数器总会回绕，不存在未定义状态",
+  "tolerance": "精确——数字逻辑，无数值容差",
+  "inputs": [
+    { "name": "clk_i", "type": "clock-edge", "width": "1" },
+    { "name": "rst_n_i", "type": "async-reset", "width": "1" }
+  ],
+  "outputs": [
+    { "name": "led_bus_o", "type": "one-hot-vector", "width": "NUM_LEDS" }
+  ],
+  "steps": [
+    "每个 clk_i 上升沿：若 !rst_n_i，step_cnt 与 onehot_r 同步清零（onehot_r 仅保留 bit0）",
+    "否则 step_cnt+1；当 step_cnt==STEP_CYCLES-1 时回零并置位使能脉冲",
+    "使能脉冲有效时：onehot_r <= {onehot_r[NUM_LEDS-2:0], onehot_r[NUM_LEDS-1]}，实现环形左移"
+  ],
+  "equations": [
+    "step_cnt_next = (step_cnt == STEP_CYCLES-1) ? 0 : step_cnt + 1",
+    "step_en = (step_cnt == STEP_CYCLES-1)",
+    "onehot_r_next = rst_n_i ? (step_en ? {onehot_r[NUM_LEDS-2:0], onehot_r[NUM_LEDS-1]} : onehot_r) : {{(NUM_LEDS-1){1'b0}}, 1'b1}",
+    "led_bus_o = onehot_r"
+  ],
+  "boundaries": [
+    "step_cnt==STEP_CYCLES-1 的回绕沿恰好每 STEP_CYCLES 周期出现一次",
+    "最高位灯位经环形回到最低位（bit NUM_LEDS-1 → bit 0）",
+    "复位断言为异步，释放经 rst_sync 三级同步链"
+  ],
+  "numericPolicy": {
+    "overflow": "wrap",
+    "truncation": "none",
+    "binaryPoint": 0,
+    "intermediateWidth": "NUM_LEDS"
+  },
+  "latencyCycles": 0,
+  "initiationIntervalCycles": 1,
+  "referenceModel": {
+    "language": "python",
+    "expression": "pos = (t // STEP_CYCLES) % NUM_LEDS; led = [1 if i == pos else 0 for i in range(NUM_LEDS)]"
+  }
+}

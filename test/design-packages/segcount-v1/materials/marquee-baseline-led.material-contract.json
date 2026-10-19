@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "material",
+  "id": "marquee-baseline-led",
+  "title": "基线 marquee v1 跑马灯核心（已晋级基线复用）",
+  "classification": "REUSE_UNCHANGED",
+  "purpose": "增量 segcount-v1 的顶层需要保留跑马灯功能；led_marquee 核逐字节复用已晋级基线（digest 550bb0d5）的实现，不改一行。",
+  "selectionReason": "基线在 marquee-v3 意图下通过 FPGA_FUNCTIONAL 阻塞仿真（sim-b9448906e27d PASS）并晋级；本增量顶层仅扩展端口与例化，核心行为零变更。",
+  "source": {
+    "kind": "baseline",
+    "uri": "baseline://marquee-lab/550bb0d577c4698a299c3e5021939e4a8b11127d1318237e9e54ab22b0aabb01（rtl/led_marquee.sv）",
+    "version": "marquee v1 baseline（intent marquee-v3 PROMOTED）",
+    "digest": "adb17f9fcf112530a8630c254eff7da393bbeb221f82058f1c550ca6c70b42a7",
+    "license": "项目自有（源自 EvoVerse catalog marquee jacket，已随基线晋级）"
+  },
+  "function": "对外可观察行为：50 MHz 时钟 + 低有效异步复位输入，LEDS 位 one-hot LED 输出每 STEP_CYCLES 周期左移一位并回绕，复位释放后从 LED0 开始。",
+  "ports": [
+    {
+      "name": "clk_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "rst_n_i",
+      "direction": "input",
+      "type": "logic",
+      "signed": false,
+      "width": "1",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "led_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "10",
+      "protocolRole": "data"
+    }
+  ],
+  "parameters": [],
+  "evidence": [
+    {
+      "kind": "baseline-promotion",
+      "reference": "控制面 intent marquee-v3 → PROMOTED，baseline digest 550bb0d5…",
+      "summary": "跑马灯 v1 作为首个正式版本晋级为项目基线"
+    },
+    {
+      "kind": "simulation-pass",
+      "reference": "evidence sim-b9448906e27d（digest b9448906…，FPGA_FUNCTIONAL）",
+      "summary": "reset/main-flow/critical-boundary/integration-smoke 四义务阻塞仿真 PASS"
+    },
+    {
+      "kind": "native-compile",
+      "reference": "project-review/2026-10-17-marquee-lab-compile-baseline/evidence/run2-bootstrap-pass.log + run3-replay-pass.log + final_compile（自由模式）",
+      "summary": "unified compile 引导+重放+交付编译均四阶段 PASS，时序 MET"
+    }
+  ],
+  "applicability": {
+    "device": "Trion T20F256（timing model C4）",
+    "board": "t20f256-xd-ps-eval",
+    "clockHz": 50000000,
+    "ledCount": 10
+  },
+  "invalidationConditions": [
+    "基线跑马灯需求变更（步进频率/LED 数/复位语义）",
+    "顶层时钟或复位架构变更",
+    "基线 digest 550bb0d5 被替代且行为变化"
+  ],
+  "integrationChecks": [
+    "扩展后顶层联合仿真中跑马灯四性质自检持续通过（tb 基线保持检查）",
+    "pins ISF 中 LED 管脚条目保持基线值不动",
+    "SDC 不变（同 clk_50m 单时钟域）"
+  ]
+}

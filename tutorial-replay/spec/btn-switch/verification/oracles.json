@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "oracles",
+  "items": [
+    {
+      "id": "ORC-PULSE-ONE",
+      "moduleId": "input_ctrl",
+      "definition": "每次稳定按压沿恰产生一个单周期脉冲",
+      "comparison": "脉冲总数与按压沿数相等，且每个脉冲宽度恰 1 个 clk_i 周期、相邻脉冲间隔 >= DEBOUNCE_CYCLES",
+      "timingWindow": "复位释放后的全程采样",
+      "failureCondition": "脉冲丢失、重复或宽度超过 1 拍"
+    },
+    {
+      "id": "ORC-GLITCH-SUPPRESS",
+      "moduleId": "input_ctrl",
+      "definition": "短于阈值的低电平干扰不产生脉冲",
+      "comparison": "注入毛刺窗口内脉冲计数保持为零（毛刺类别含 10 拍、阈值/10 拍、阈值-1 拍三档）",
+      "timingWindow": "每类毛刺窗口及其后 DEBOUNCE_CYCLES 拍内",
+      "failureCondition": "任一毛刺触发脉冲"
+    },
+    {
+      "id": "ORC-SW-SYNC",
+      "moduleId": "input_ctrl",
+      "definition": "拨码电平经 2 级同步后精确跟随",
+      "comparison": "sw_i 每次翻转后第 2 个上升沿起 sw_sync_o == sw_i；10 位全部覆盖",
+      "timingWindow": "每次拨码翻转后的连续 4 个采样点",
+      "failureCondition": "跟随延迟不等于 2 拍或出现毛刺"
+    },
+    {
+      "id": "ORC-RESET-ZERO",
+      "moduleId": "input_ctrl",
+      "definition": "复位期间输出恒零",
+      "comparison": "每个采样点检查 btn_pulse_o==0 且 sw_sync_o==0",
+      "timingWindow": "rst_n_i==0 的每个 clk_i 上升沿采样点",
+      "failureCondition": "复位期间任何位非零"
+    }
+  ]
+}

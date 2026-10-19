@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "oracles",
+  "items": [
+    {
+      "id": "ORC-001",
+      "moduleId": "marquee-core",
+      "requirementIds": ["REQ-001"],
+      "inputs": ["arst_n_i", "rst_sync_r[2]"],
+      "expectedOutputs": ["led_o == 10'b0000000001（同步释放后首个采样）", "cnt_r == 0"],
+      "comparison": "精确相等：释放后第一个 clk_i 采样点逐位比对 led_o",
+      "timingWindow": "rst_sync_r[2] 上升后 1 个时钟周期内",
+      "failureCondition": "释放后首采样 led_o != 0x001，或复位期间 led_o 出现 X"
+    },
+    {
+      "id": "ORC-002",
+      "moduleId": "marquee-core",
+      "requirementIds": ["REQ-002"],
+      "inputs": ["led_o（连续采样）"],
+      "expectedOutputs": ["popcount(led_o) == 1（每个采样点）", "next(led_o) == rotate_left_1(led_o)（每个步进）"],
+      "comparison": "逐采样点不变式检查 + 相邻步进关系检查（one-hot 左移）",
+      "timingWindow": "整个观察窗（>= 3 个整圈）",
+      "failureCondition": "任一采样 popcount != 1，或相邻步进不满足循环左移关系"
+    },
+    {
+      "id": "ORC-003",
+      "moduleId": "marquee-core",
+      "requirementIds": ["REQ-003"],
+      "inputs": ["clk_i", "led_o 翻转事件"],
+      "expectedOutputs": ["翻转间隔计数 == STEP_CYCLES", "led[9]->led[0] 回绕同样满足该间隔", "整圈计数 == 10 x STEP_CYCLES"],
+      "comparison": "事件间隔计数精确相等（含回绕步与整圈周期）",
+      "timingWindow": ">= 2 次 led[9]->led[0] 回绕",
+      "failureCondition": "任一翻转间隔 != STEP_CYCLES，或整圈周期 != 10 x STEP_CYCLES"
+    },
+    {
+      "id": "ORC-004",
+      "moduleId": "marquee-core",
+      "requirementIds": ["REQ-004"],
+      "inputs": ["顶层仿真结束状态", "led_o 全程采样"],
+      "expectedOutputs": ["仿真正常结束（无超时/挂起）", "led_o 无 X", "输出含 TB-RESULT: PASS 标记"],
+      "comparison": "testbench 自检标记存在且为 PASS；全程无 X",
+      "timingWindow": "整个顶层联合仿真运行",
+      "failureCondition": "仿真超时/挂起、led_o 出现 X、或自检标记缺失/为 FAIL"
+    }
+  ]
+}

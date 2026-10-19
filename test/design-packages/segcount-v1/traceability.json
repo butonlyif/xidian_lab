@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "traceability",
+  "items": [
+    {
+      "requirementId": "REQ-101",
+      "moduleIds": ["segcount-display"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-101"],
+      "oracleIds": ["ORC-101"],
+      "propertyIds": ["PROP-101"],
+      "coverageIds": []
+    },
+    {
+      "requirementId": "REQ-102",
+      "moduleIds": ["segcount-display"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-102"],
+      "oracleIds": ["ORC-102"],
+      "propertyIds": ["PROP-102"],
+      "coverageIds": ["COV-101"]
+    },
+    {
+      "requirementId": "REQ-103",
+      "moduleIds": ["segcount-display"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-103"],
+      "oracleIds": ["ORC-103"],
+      "propertyIds": ["PROP-103"],
+      "coverageIds": []
+    },
+    {
+      "requirementId": "REQ-104",
+      "moduleIds": ["segcount-display"],
+      "algorithmIds": [],
+      "scenarioIds": ["SCEN-104"],
+      "oracleIds": ["ORC-104"],
+      "propertyIds": ["PROP-104"],
+      "coverageIds": ["COV-101"]
+    }
+  ]
+}

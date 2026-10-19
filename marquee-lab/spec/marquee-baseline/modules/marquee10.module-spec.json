@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "module",
+  "id": "marquee10",
+  "moduleName": "marquee10",
+  "title": "10 位 one-hot 跑马灯",
+  "purpose": "自由运行的循环灯控制器：在单一时钟域内用时钟使能分频产生 8 Hz 步进，输出 10 位 one-hot 灯总线，复位期间输出全零。",
+  "responsibilities": [
+    "在 clk_i 域内按 STEP_CYCLES 周期步进 one-hot 灯位（环形左移）",
+    "复位有效期间强制 led_bus_o 全零，释放后从最低位点亮开始",
+    "通过 NUM_LEDS / STEP_CYCLES 参数化灯数与步进周期"
+  ],
+  "nonResponsibilities": [
+    "不负责 LED 管脚电气属性（IO_STANDARD、bank 电压由 ISF 约束管理）",
+    "不负责按键、拨码等其他板级外设",
+    "不产生任何握手或背压信号（自由运行）"
+  ],
+  "parameters": [
+    {
+      "name": "NUM_LEDS",
+      "type": "integer",
+      "default": 10,
+      "constraints": ["1 <= NUM_LEDS <= 32"],
+      "behavioralEffect": "决定 led_bus_o 位宽与环形长度；本基线固定例化为 10"
+    },
+    {
+      "name": "STEP_CYCLES",
+      "type": "integer",
+      "default": 6250000,
+      "constraints": ["STEP_CYCLES >= 1", "50_000_000 / STEP_CYCLES = 8 → 每步 125 ms"],
+      "behavioralEffect": "每盏灯点亮 STEP_CYCLES 个时钟周期；默认值对应 50 MHz 下 8 Hz 步进"
+    }
+  ],
+  "ports": [
+    {
+      "name": "clk_i",
+      "direction": "input",
+      "type": "clock",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "protocolRole": "clock"
+    },
+    {
+      "name": "rst_n_i",
+      "direction": "input",
+      "type": "async-reset-active-low",
+      "signed": false,
+      "width": "1",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "reset"
+    },
+    {
+      "name": "led_bus_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "NUM_LEDS",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys",
+      "protocolRole": "data",
+      "idleValue": "复位期间全零；运行期间 one-hot"
+    }
+  ],
+  "dataObjects": [
+    {
+      "name": "step_cnt",
+      "role": "步进分频计数器（clock enable 源）",
+      "width": "clog2(STEP_CYCLES)",
+      "resetValue": "0",
+      "updateCondition": "每个 clk_i 上升沿 +1，达到 STEP_CYCLES-1 时回零",
+      "ownership": "owned"
+    },
+    {
+      "name": "onehot_r",
+      "role": "one-hot 灯位寄存器（输出寄存）",
+      "width": "NUM_LEDS",
+      "resetValue": "{(NUM_LEDS-1)'b0, 1'b1}（仅最低位为 1）",
+      "updateCondition": "step_cnt 回绕沿环形左移一位",
+      "ownership": "owned"
+    }
+  ],
+  "behavior": {
+    "latencyCycles": 0,
+    "initiationIntervalCycles": 1,
+    "backpressure": "无——自由运行，无 valid/ready 握手",
+    "errors": "无错误通路；复位有效期间输出恒为全零"
+  },
+  "algorithmIds": ["algo-onehot-rotate"],
+  "requirementIds": ["REQ-1", "REQ-2", "REQ-3", "REQ-4"],
+  "propertyIds": ["PROP-RESET", "PROP-ONEHOT", "PROP-ROTATE", "PROP-HOLD"]
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "executable-system",
+  "specId": "marquee-lab-btn-switch",
+  "revision": "1.0.0",
+  "title": "按键与拨码输入控制（btn-switch）",
+  "purpose": "在 marquee-baseline 基线之上建立第二个并行增量：采集板上 BUT2/BUT3/BUT4 三个按键（低有效、上拉）与 SW1..SW10 十位拨码开关。按键经两级同步加 20 ms 稳定计数消抖后产生单周期脉冲，拨码经两级同步直采电平。全部逻辑运行在单一 50 MHz 时钟域，与基线共用时钟域与复位域。",
+  "assurance": {
+    "rulePacks": ["rtl-baseline@1"],
+    "contracts": [],
+    "exceptions": []
+  },
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "statement": "任一按键输入稳定保持 DEBOUNCE_CYCLES（默认 1,000,000 个 50 MHz 周期，即 20 ms）为低后，在稳定达成的那一拍产生一个单周期 btn_pulse_o 高脉冲；每次按下沿恰好一个脉冲。",
+      "acceptance": "仿真中三次稳定按压（持续 > DEBOUNCE_CYCLES）各产生恰好 1 个单周期脉冲，脉冲总数与按压沿数相等。"
+    },
+    {
+      "id": "REQ-2",
+      "statement": "持续低电平时长小于 DEBOUNCE_CYCLES 的抖动毛刺不产生任何脉冲（含 DEBOUNCE_CYCLES-1 拍的最长拒判毛刺）。",
+      "acceptance": "注入短毛刺、中毛刺与 DEBOUNCE_CYCLES-1 边界毛刺各一类，脉冲计数保持不变。"
+    },
+    {
+      "id": "REQ-3",
+      "statement": "10 位拨码开关电平经 2 级同步器后在 2 个 clk_i 周期内反映到 sw_sync_o，纯电平跟随无消抖。",
+      "acceptance": "sw_i 每次翻转后第 2 个上升沿起 sw_sync_o 与 sw_i 一致；10 位全部翻转覆盖。"
+    },
+    {
+      "id": "REQ-4",
+      "statement": "复位有效（rst_n_i 拉低）期间 btn_pulse_o=3'b000 且 sw_sync_o=10'b0。",
+      "acceptance": "arst_n==0 的每个采样点两输出均为全零。"
+    }
+  ],
+  "instances": [
+    {
+      "id": "u_input_ctrl",
+      "title": "按键拨码输入控制 input_ctrl",
+      "level": "module",
+      "contractKind": "module",
+      "contractId": "input_ctrl"
+    },
+    {
+      "id": "u_stage0_top",
+      "title": "板级顶层（按键/拨码管脚扇出宿主）",
+      "level": "system",
+      "contractKind": "material",
+      "contractId": "mat-board-io",
+      "materialStatus": "ADAPT_REQUIRED"
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-btn-bus",
+      "kind": "data",
+      "topology": "fan-out",
+      "protocol": "active-low-button-bus",
+      "from": "u_stage0_top.btn_bus_o",
+      "to": "u_input_ctrl.btn_i",
+      "cdcStrategy": "single-domain"
+    },
+    {
+      "id": "c-sw-bus",
+      "kind": "data",
+      "topology": "fan-out",
+      "protocol": "positive-dip-bus",
+      "from": "u_stage0_top.sw_bus_o",
+      "to": "u_input_ctrl.sw_i",
+      "cdcStrategy": "single-domain"
+    }
+  ],
+  "clockDomains": [
+    {
+      "id": "clk_50m",
+      "frequencyHz": 50000000
+    }
+  ],
+  "resetDomains": [
+    {
+      "id": "rst_sys",
+      "clockDomain": "clk_50m",
+      "polarity": "active-low",
+      "assertion": "asynchronous",
+      "release": "3-stage synchronizer"
+    }
+  ]
+}

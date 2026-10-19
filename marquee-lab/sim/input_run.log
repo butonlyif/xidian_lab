@@ -1,0 +1,29 @@
+﻿EVOVERSE_PROPERTY {"propertyId":"PROP-RESET-ZERO","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-RESET-ZERO","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-RESET-ZERO","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-RESET-ZERO","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-PULSE-ONE","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-PULSE-ONE","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-PULSE-ONE","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-GLITCH-SUPPRESS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-GLITCH-SUPPRESS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-GLITCH-SUPPRESS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"PROP-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"ORC-RESET-ZERO","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"ORC-PULSE-ONE","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"ORC-GLITCH-SUPPRESS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"ORC-SW-SYNC","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"COV-BTNS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"COV-GLITCH-CLASS","status":"pass","artifactPath":"tb_input_ctrl"}
+EVOVERSE_PROPERTY {"propertyId":"COV-SW-ALL","status":"pass","artifactPath":"tb_input_ctrl"}
+TB-RESULT.PASS (pulses=4 sw_events=10)
+sim/tb_input_ctrl.sv:224: $finish called at 7120000 (1ps)

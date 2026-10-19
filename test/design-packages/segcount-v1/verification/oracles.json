@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "oracles",
+  "items": [
+    {
+      "id": "ORC-101",
+      "moduleId": "segcount-display",
+      "requirementIds": ["REQ-101"],
+      "inputs": ["arst_n_i", "dut.u_seg.rst_sync_r[2]"],
+      "expectedOutputs": ["bcd_r == 0", "tick_cnt_r == 0 && scan_cnt_r == 0 && scan_idx_r == 0"],
+      "comparison": "精确相等：同步释放后第一个采样点比较 BCD 与节拍状态",
+      "timingWindow": "rst_sync_r[2] 上升后 1 个采样内",
+      "failureCondition": "释放后首采样 bcd_r != 0，或复位期间输出出现 X"
+    },
+    {
+      "id": "ORC-102",
+      "moduleId": "segcount-display",
+      "requirementIds": ["REQ-102"],
+      "inputs": ["bcd_r（值变化事件）"],
+      "expectedOutputs": ["每次变化后 bcd_r == to_bcd8(prev + 1)"],
+      "comparison": "与十进制→BCD 期望模型逐事件精确比对（含 9→10 进位）",
+      "timingWindow": "≥12 次递增",
+      "failureCondition": "任一次变化与期望模型不符"
+    },
+    {
+      "id": "ORC-103",
+      "moduleId": "segcount-display",
+      "requirementIds": ["REQ-103"],
+      "inputs": ["u_wrap.bcd_r（DIGITS=2 实例）"],
+      "expectedOutputs": ["99 之后下一次变化 == 00", "回绕后继续 0→1 递增"],
+      "comparison": "回绕事件序列精确匹配（99 → 00 → 01 …）",
+      "timingWindow": "≥2 次回绕",
+      "failureCondition": "99 之后变化值非 00，或回绕后递增异常"
+    },
+    {
+      "id": "ORC-104",
+      "moduleId": "segcount-display",
+      "requirementIds": ["REQ-104"],
+      "inputs": ["dig_o", "seg_o", "scan_idx_r", "bcd_r", "led_o（基线保持）"],
+      "expectedOutputs": ["dig == ~(one-hot<<idx)", "seg == (blank ? 0 : decode(bcd[idx]))", "跑马灯 one-hot 8 Hz 保持", "仿真正常结束 + TB-RESULT: PASS"],
+      "comparison": "每次扫描位切换逐项比对位选/段译码/消隐期望；跑马灯四性质计数校验；自检标记存在且 PASS",
+      "timingWindow": "整个联合仿真运行",
+      "failureCondition": "任一扫描输出与期望不符、跑马灯性质破坏、仿真挂起/超时/出现 X、自检 FAIL"
+    }
+  ]
+}

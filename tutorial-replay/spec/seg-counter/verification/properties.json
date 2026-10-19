@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "properties",
+  "items": [
+    {
+      "id": "PROP-COUNT-INC",
+      "moduleId": "seg_display8",
+      "ruleId": "rtl-baseline/count-increment",
+      "antecedent": "tick 使能脉冲沿（复位已释放）",
+      "consequent": [
+        "BCD 计数值 = (prev + 1) mod 100000000，每位保持合法 BCD（0..9）"
+      ],
+      "requiredActivations": 10,
+      "observedSignals": ["tick_cnt", "bcd_digits"]
+    },
+    {
+      "id": "PROP-RESET-BLANK",
+      "moduleId": "seg_display8",
+      "ruleId": "rtl-baseline/reset-blank",
+      "antecedent": "rst_n_i == 0",
+      "consequent": [
+        "seg_o == 8'hFF 且 sel_o == 8'h00"
+      ],
+      "requiredActivations": 1,
+      "observedSignals": ["rst_n_i", "seg_o", "sel_o"]
+    },
+    {
+      "id": "PROP-SCAN-HOLD",
+      "moduleId": "seg_display8",
+      "ruleId": "rtl-baseline/scan-hold",
+      "antecedent": "复位已释放且 scan_cnt 未回绕",
+      "consequent": [
+        "sel_o 保持不变；回绕沿变为下一位（模 8）；任一时刻恰一位为高"
+      ],
+      "requiredActivations": 8,
+      "observedSignals": ["scan_cnt", "sel_o"]
+    },
+    {
+      "id": "PROP-SEG-DECODE",
+      "moduleId": "seg_display8",
+      "ruleId": "rtl-baseline/segment-decode",
+      "antecedent": "选通位 BCD 值为 d（d ∈ 0..9）且选通已稳定",
+      "consequent": [
+        "seg_o == SEG_TABLE[d]"
+      ],
+      "requiredActivations": 10,
+      "observedSignals": ["bcd_digits", "scan_idx", "seg_o"]
+    }
+  ]
+}

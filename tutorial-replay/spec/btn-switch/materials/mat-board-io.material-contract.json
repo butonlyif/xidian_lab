@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "material",
+  "id": "mat-board-io",
+  "title": "板级按键/拨码管脚扇出契约（BUT2/3/4 与 SW1..SW10）",
+  "purpose": "描述板级顶层对按键与拨码管脚的接纳方式：BUT2/BUT3/BUT4 低有效按键与 SW1..SW10 拨码在顶层汇成两组总线扇出给输入控制模块。",
+  "selectionReason": "管脚与上拉信息来自 t20f256-xd-ps-eval 板卡 pin map（BUT2=B4、BUT3=A3、BUT4=A2、SW1..SW10=B15..B10，全部 3.3 V bank），是本工程对板载输入物料的唯一权威来源。",
+  "function": "把 3 路低有效按键与 10 路拨码管脚电平在顶层聚合为 btn_bus_o（3 位，低有效）与 sw_bus_o（10 位，上拨=1）扇出。",
+  "classification": "ADAPT_REQUIRED",
+  "source": {
+    "kind": "catalog-board-pinout",
+    "uri": "catalog/boards/t20f256-xd-ps-eval/pinout/t20f256-xd-ps-eval.csv（USER_BTN_BUT2..4、DIP_SW1..10 行）",
+    "version": "0.1.0",
+    "license": "EVOVERSE SDK 板卡目录，随工程分发",
+    "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "ports": [
+    {
+      "name": "btn_bus_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "3",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    },
+    {
+      "name": "sw_bus_o",
+      "direction": "output",
+      "type": "logic",
+      "signed": false,
+      "width": "10",
+      "clockDomain": "clk_50m",
+      "resetDomain": "rst_sys"
+    }
+  ],
+  "applicability": {
+    "device": "Trion T20F256（t20f256-xd-ps-eval）",
+    "ioStandard": "3.3 V LVTTL / LVCMOS",
+    "btnPolarity": "active-low with pullup（BUT2=B4、BUT3=A3、BUT4=A2）",
+    "swPolarity": "上拨=1（SW1..SW10 = B15,A15,B14,A14,B13,A13,B12,A11,B11,B10）"
+  },
+  "invalidationConditions": [
+    "更换板卡导致按键/拨码管脚映射变化",
+    "按键改为高有效或拨码极性反转的板卡变体",
+    "按键数量或拨码数量变化"
+  ],
+  "integrationChecks": [
+    "顶层把 user_btn2/user_btn3/user_btn4 依序汇入 3 位按键总线（bit0=BUT2）",
+    "顶层把 dip_sw1..dip_sw10 依序汇入 10 位拨码总线（bit0=SW1）",
+    "ISF 中 13 个输入管脚均已 assign_pkg_pin 且 IO_STANDARD 为 3.3 V LVTTL / LVCMOS"
+  ],
+  "evidence": [
+    {
+      "scope": "板卡 pin map 解析（stage0 生成工程时同源）：BUT2/3/4=B4/A3/A2、SW1..10=B15..B10 实证",
+      "kind": "pinout-report"
+    }
+  ]
+}

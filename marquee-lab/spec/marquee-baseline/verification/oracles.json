@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "oracles",
+  "items": [
+    {
+      "id": "ORC-RESET-ZERO",
+      "moduleId": "marquee10",
+      "definition": "复位有效期间 led_bus_o 恒为全零",
+      "comparison": "每个采样点检查 led_bus_o == 0",
+      "timingWindow": "arst_n==0 的每个 clk_i 上升沿采样点",
+      "failureCondition": "复位期间任意一位为 1"
+    },
+    {
+      "id": "ORC-ONEHOT",
+      "moduleId": "marquee10",
+      "definition": "复位释放后任意时刻 led_bus_o 恰有一位为 1",
+      "comparison": "对 led_bus_o 做 one-hot 检查（计 1 的个数 == 1）",
+      "timingWindow": "复位释放后的每个 clk_i 上升沿采样点",
+      "failureCondition": "全零或多位为 1"
+    },
+    {
+      "id": "ORC-SEQUENCE",
+      "moduleId": "marquee10",
+      "definition": "点亮位置按 i → (i+1) mod NUM_LEDS 顺序推进",
+      "comparison": "记录每次步进后的位置序列，与预期环形序列逐项比较",
+      "timingWindow": "每次 step_cnt 回绕沿",
+      "failureCondition": "位置跳变、倒退或重复"
+    },
+    {
+      "id": "ORC-STEP-PERIOD",
+      "moduleId": "marquee10",
+      "definition": "相邻两次步进之间恰好间隔 STEP_CYCLES 个时钟周期",
+      "comparison": "对步进沿之间的周期计数，与 STEP_CYCLES 精确相等",
+      "timingWindow": "任意相邻两次步进沿之间",
+      "failureCondition": "步进间隔不等于 STEP_CYCLES"
+    }
+  ]
+}

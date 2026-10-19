@@ -1,0 +1,10 @@
+﻿WARNING: cannot find correct IV value
+Creating C:\Users\dylan Wang\AppData\Local\Temp\hw-rename-probe\outflow
+Running: efx_run_map.py hw-rename-probe --family Titanium --device Ti60F225 --project_xml C:\Users\dylan Wang\AppData\Local\Temp\hw-rename-probe\hw-rename-probe.xml --output_dir outflow --work_dir work_syn --opt root=helloworld --opt veri_options=verilog_mode=verilog_2k,vhdl_mode=vhdl_2008 work-dir=work_syn write_efx_verilog=on peri-syn-instantiation=1 peri-syn-inference=1 --un_flow
+   map :	PASS 
+Running: efx_run_pt_unified.py hw-rename-probe Titanium Ti60F225 --output_dir outflow --timing_model C4 --project_xml hw-rename-probe.xml --un_flow --peri_netlist outflow\hw-rename-probe.peri.db --peri_scripts Ti60F225_kit_pins.isf
+   interface :	PASS 
+Running: efx_run_pnr.py hw-rename-probe --prj C:\Users\dylan Wang\AppData\Local\Temp\hw-rename-probe\hw-rename-probe.xml --family Titanium --device Ti60F225 --timing_model C4 --output_dir outflow --work_dir work_pnr --opt sdc_file=helloworld.sdc
+   pnr :	PASS 
+Running: efx_run_pgm.py hw-rename-probe --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=off enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
+   pgm :	PASS 

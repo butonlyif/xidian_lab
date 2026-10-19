@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "coverage",
+  "items": [
+    {
+      "id": "COV-001",
+      "moduleId": "marquee-core",
+      "requirementIds": ["REQ-002"],
+      "goal": "one-hot 位置覆盖：10 个 LED 位置（bit0..bit9）各被点亮至少一次，含 led[9]->led[0] 回绕边",
+      "bins": ["pos0", "pos1", "pos2", "pos3", "pos4", "pos5", "pos6", "pos7", "pos8", "pos9", "wrap9to0"],
+      "rule": "FPGA_FUNCTIONAL 下覆盖率为延期证据（非阻塞）；冒烟场景 SCEN-004 的 2 整圈运行顺带满足全部 bin"
+    }
+  ]
+}

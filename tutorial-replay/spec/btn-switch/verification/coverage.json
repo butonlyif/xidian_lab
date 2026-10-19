@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "coverage",
+  "items": [
+    {
+      "id": "COV-BTNS",
+      "moduleId": "input_ctrl",
+      "definition": "3 路按键各产生过至少一次脉冲",
+      "rule": "仿真全程统计 btn_pulse_o 各位的置位事件，bit0..bit2 每位至少出现一次即达成"
+    },
+    {
+      "id": "COV-GLITCH-CLASS",
+      "moduleId": "input_ctrl",
+      "definition": "三类毛刺（短、中、阈值-1 边界）各注入过至少一次",
+      "rule": "仿真激励包含 10 拍、DEBOUNCE_CYCLES/10 拍、DEBOUNCE_CYCLES-1 拍三档低电平干扰各至少一次即达成"
+    },
+    {
+      "id": "COV-SW-ALL",
+      "moduleId": "input_ctrl",
+      "definition": "10 位拨码全部完成过一次翻转并被跟随",
+      "rule": "仿真全程记录 sw_sync_o 各位的变化事件，bit0..bit9 每位至少一次 0→1 或 1→0 即达成"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "executable-system",
+  "specId": "tutorial-replay-marquee-baseline",
+  "revision": "1.0.0",
+  "title": "10-LED 跑马灯基线（marquee-baseline）",
+  "purpose": "在 t20f256-xd-ps-eval 板卡的 stage0 骨架之上建立首个受管基线设计：一个 10 位 one-hot 跑马灯，作为 EvoVerse 全流程教程的启动基线。逻辑全部运行在单一 50 MHz 时钟域，复位采用异步断言、同步释放。",
+  "assurance": {
+    "rulePacks": ["rtl-baseline@1"],
+    "contracts": [],
+    "exceptions": []
+  },
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "statement": "复位释放后，10 个用户 LED 按 one-hot 跑马灯样式循环点亮，步进频率 8 Hz（每步 125 ms）。",
+      "acceptance": "仿真中观察到点亮位按 0→1→…→9→0 环形推进，每步间隔 STEP_CYCLES=6,250,000 个 50 MHz 时钟周期。"
+    },
+    {
+      "id": "REQ-2",
+      "statement": "复位有效（arst_n 拉低）期间所有 LED 熄灭。",
+      "acceptance": "arst_n==0 的每个采样点 led_bus_o==0；释放后一个时钟周期内出现初始 one-hot 码型。"
+    },
+    {
+      "id": "REQ-3",
+      "statement": "步进时序由 STEP_CYCLES 参数精确决定，不使用分频时钟驱动逻辑。",
+      "acceptance": "相邻两次步进之间恰好间隔 STEP_CYCLES 个 clk_i 周期；全部逻辑运行在单一 50 MHz 时钟域（clock enable 风格）。"
+    },
+    {
+      "id": "REQ-4",
+      "statement": "跑马灯输出经 stage0 板级顶层到达 10 个物理 LED 管脚。",
+      "acceptance": "顶层例化 u_marquee，并把 10 位灯总线映射到 led_user..led_user10 十个管脚；新增 ISF 约束全部重放安全（仅 set_property / assign_pkg_pin）。"
+    }
+  ],
+  "instances": [
+    {
+      "id": "u_marquee",
+      "title": "跑马灯 marquee10",
+      "level": "module",
+      "contractKind": "module",
+      "contractId": "marquee10"
+    },
+    {
+      "id": "u_stage0_top",
+      "title": "stage0 板级顶层",
+      "level": "system",
+      "contractKind": "material",
+      "contractId": "mat-stage0-top",
+      "materialStatus": "ADAPT_REQUIRED"
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-led-bus",
+      "kind": "data",
+      "topology": "chain",
+      "protocol": "onehot-parallel-bus",
+      "from": "u_marquee.led_bus_o",
+      "to": "u_stage0_top.led_bus_i",
+      "cdcStrategy": "single-domain"
+    }
+  ],
+  "clockDomains": [
+    {
+      "id": "clk_50m",
+      "frequencyHz": 50000000
+    }
+  ],
+  "resetDomains": [
+    {
+      "id": "rst_sys",
+      "clockDomain": "clk_50m",
+      "polarity": "active-low",
+      "assertion": "asynchronous",
+      "release": "3-stage synchronizer"
+    }
+  ]
+}

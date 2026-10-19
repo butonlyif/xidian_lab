@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 04 章 · 意图与规格</title>
+<link rel="stylesheet" href="assets/site.css?v=2">
+<script>(function(){var t;try{t=localStorage.getItem("t20f256-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+</head>
+<body data-ch="04">
+<aside class="sidebar">
+  <div class="brand">T20F256 全流程实战<small>EvoVerse SDK · 纯 RTL 设计</small></div>
+  <nav>
+    <a href="index.html" data-ch="index"><span class="no">目录</span>总览与进度</a>
+    <a href="01-environment.html" data-ch="01"><span class="no">01</span>装好整套环境</a>
+    <a href="02-board.html" data-ch="02"><span class="no">02</span>认识这块板子</a>
+    <a href="03-new-project.html" data-ch="03"><span class="no">03</span>创建第一个工程</a>
+    <a href="04-intent-spec.html" data-ch="04"><span class="no">04</span>意图与规格</a>
+    <a href="05-candidate-sim.html" data-ch="05"><span class="no">05</span>候选与仿真</a>
+    <a href="06-native-build.html" data-ch="06"><span class="no">06</span>原生编译</a>
+    <a href="07-program.html" data-ch="07"><span class="no">07</span>烧录与上板</a>
+    <a href="08-increment-seg.html" data-ch="08"><span class="no">08</span>增量一·数码管</a>
+    <a href="09-increment-btn.html" data-ch="09"><span class="no">09</span>增量二·按键拨码</a>
+    <a href="10-integration.html" data-ch="10"><span class="no">10</span>三模块集成</a>
+    <a href="11-troubleshooting.html" data-ch="11"><span class="no">11</span>排错手册</a>
+    <a href="12-roadmap.html" data-ch="12"><span class="no">12</span>下一步·RISC-V</a>
+  </nav>
+  <div class="progress-note">阅读进度保存在这台浏览器里</div>
+</aside>
+<main>
+<div class="lead">
+<header class="ch-head">
+  <div class="kicker">CHAPTER 04</div>
+  <h1>意图与规格</h1>
+  <p class="sub">控制面全链第一段：intent.create → 仿真等级 → 密封规格包 → spec.draft / spec.approve。</p>
+</header>
+
+<section class="card goal-card">
+  <div class="tag">本章目标</div>
+  <p>为「10-LED 跑马灯基线」走通控制面前半程，理解 EXECUTABLE_2_0 规格包的十个文件，
+  并且掌握「16 条 GENERATION_NOT_READY」这类规格错误的排障方法。</p>
+</section>
+
+<h2>先建立心智模型：谁在管流程？</h2>
+<p>EvoVerse 的可靠设计流程由一个<b>控制面</b>（Project Control Plane）统一驱动。你（通过 Trae）只做三件事：</p>
+<div class="codeblock"><button class="copy-btn">复制</button><pre>读状态 → 读动作 → 执行选定动作 → 重读 revision        <span class="k"># 每次只推进一个动作</span></pre></div>
+<table>
+  <tr><th>动作</th><th>作用</th><th>本章出现？</th></tr>
+  <tr><td><code>project.initialize</code></td><td>初始化工程身份（按 git 根）</td><td>✓</td></tr>
+  <tr><td><code>intent.create</code></td><td>建立一次有明确目标的增量意图</td><td>✓</td></tr>
+  <tr><td><code>simulation.profile.select</code></td><td>两阶段选定仿真等级（推荐→用户确认）</td><td>✓</td></tr>
+  <tr><td><code>spec.draft</code> / <code>spec.approve</code></td><td>登记密封规格包 / 客户确认</td><td>✓</td></tr>
+  <tr><td><code>candidate.deliver</code> → <code>verification.simulate</code> → <code>candidate.promote</code></td><td>候选链（第 05 章）</td><td>下一章</td></tr>
+  <tr><td><code>build.native</code> / <code>hardware.program</code> / <code>hardware.validate</code></td><td>证据记录（第 06/07 章）</td><td>—</td></tr>
+</table>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 1</span>
+    <h3>建立意图（intent.create）</h3>
+    <p class="why">这一步在做什么：把「我要干什么」变成一条受管的意图记录；控制面同时把当前基线文件清单快照进去。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说（点右侧按钮复制；注意开头带 @evoverse）：</div>
+      <button class="copy-btn">复制</button>
+      <pre>@evoverse 我想做的第一个功能是个跑马灯：板上十个灯轮流点亮，每秒走八步这样循环，先把它做成第一个正式版本。</pre>
+    </div>
+    <p>成功后状态里能看到意图变为 <code>ACTIVE</code>，revision 前进。</p>
+    <div class="status-line ok">✓ 意图 ACTIVE · revision 前进</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态</summary>
+      <div class="body">
+        <p>revision 是每个成功动作都会推进的 64 位十六进制值，失败不推进——这是判断「动作到底成没成」的硬指标。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 为什么以 @evoverse 开头</summary>
+      <div class="body">
+        <p>这条前缀是进入 EvoVerse 标准设计流程的入口——它把消息路由到项目控制面（Project Control），
+        你的文字会被当作设计意图来处理，而不是普通闲聊。</p>
+        <p>工程一旦受管（项目里出现 <code>.evoverse/</code> 状态），AI 每轮对话都会自动读取项目状态、按流程推进，
+        所以后面的所有话术<b>都不用再加前缀</b>，直接说你想做什么就行。</p>
+        <p>万一新开会话时 AI 没接上流程，再说一次 <code>@evoverse</code> 把控制面唤起来即可。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 2</span>
+    <h3>选定仿真等级（两阶段决策）</h3>
+    <p class="why">这一步在做什么：控制面按风险事实推荐一个仿真等级，你确认后才允许起草规格。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说（第一阶段：提交风险事实拿推荐）：</div>
+      <button class="copy-btn">复制</button>
+      <pre>这个设计挺简单的，就一个时钟，没什么跨时钟域之类的东西，仿真怎么安排你看着推荐就行。</pre>
+    </div>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说（第二阶段：确认选择）：</div>
+      <button class="copy-btn">复制</button>
+      <pre>就按推荐的来。</pre>
+    </div>
+    <div class="status-line ok">✓ 推荐 FPGA_FUNCTIONAL · 已确认</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-status" open>
+      <summary>状态 · 实测返回</summary>
+      <div class="body">
+        <p>触发因素只有 <code>single-clock</code>，推荐 <b>FPGA_FUNCTIONAL</b>，
+        阻塞义务 = <code>reset + main-flow + critical-boundary + integration-smoke</code>
+        （恰好 3 个核心场景 + 1 边界 + 1 冒烟的预算上限）。</p>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 等级决定义务预算</summary>
+      <div class="body">
+        <p>等级不是形式：它决定规格里要写多少验证场景。等级越低义务越少，但延期事项会被明确记录，
+        仿真结论也会带上等级限定——「这个 PASS 只代表功能级」。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 3</span>
+    <h3>写 EXECUTABLE_2_0 规格包（十个文件）</h3>
+    <p class="why">这一步在做什么：把「跑马灯怎么做」整理成一份可执行的契约，然后密封登记。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>帮我把这个跑马灯整理成正式的规格：灯怎么个轮流法、复位的时候是什么样、多久走一步都写清楚，上板要接哪十个灯也定下来。</pre>
+    </div>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>spec/marquee-baseline/
+├── system-spec.json                          <span class="k"># 系统视图：需求 REQ-1..4、实例、连接、时钟/复位域</span>
+├── modules/marquee10.module-spec.json        <span class="k"># 模块契约：参数/端口/内部数据对象/行为</span>
+├── materials/mat-stage0-top.material-contract.json  <span class="k"># 板级物料：stage0 顶层（ADAPT_REQUIRED）</span>
+├── algorithms/algo-onehot-rotate.algorithm-spec.json <span class="k"># 算法：步骤/公式/数值策略/参考模型</span>
+├── verification/scenarios.json               <span class="k"># 4 场景（各带 verificationRole）</span>
+├── verification/oracles.json                 <span class="k"># 4 判定器</span>
+├── verification/properties.json              <span class="k"># 4 性质（含 requiredActivations）</span>
+├── verification/coverage.json                <span class="k"># 2 覆盖项</span>
+├── decisions.json                            <span class="k"># 4 决策（status: ACCEPTED）</span>
+└── traceability.json                         <span class="k"># 需求 ↔ 场景/判定器/性质/覆盖 追踪</span></pre></div>
+    <p>写完必须<b>密封</b>（seal），否则 digest 对不上：</p>
+    <div class="codeblock"><button class="copy-btn">复制</button><pre>python "C:\Users\&lt;你&gt;\evoverse-sdk\runtime\skills\evoverse-design-spec\scripts\seal_executable_spec.py" spec/marquee-baseline
+
+<span class="g">{"manifestPath": "generation-manifest.json", "specPackageDigest": "ef9a502b...", "status": "SEALED"}</span></pre></div>
+    <div class="status-line ok">✓ 规格包 SEALED</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 规格不是散文</summary>
+      <div class="body">
+        <p>EXECUTABLE_2_0 规格包是一份可执行的契约：需求、模块端口、算法、验证义务、决策、追踪，全部结构化。
+        下一章的仿真判定器就是从这里读「什么算对」。</p>
+        <p>密封器会重渲染 <code>specification.md</code>（人读版）、生成
+        <code>generation-manifest.json</code> 和包 digest。<b>改任何文件后都要重新密封</b>，否则 digest 对不上。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 4</span>
+    <h3>spec.draft：一次真实的 16 连错排障</h3>
+    <p class="why">这一步在做什么：把密封包登记进控制面。控制面的「生成就绪校验」比本地密封更严。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>把 spec/marquee-baseline 这个包提交 spec.draft，绑定 marquee-baseline 意图。</pre>
+    </div>
+    <div class="story">
+      <span class="tag">翻车实录</span>第一次提交被拒——packagePath 传了绝对路径；改成相对路径后，
+      又迎来 16 条 <code>GENERATION_NOT_READY</code>。逐条照着 jsonPointer 修完、重新密封、再次提交，
+      控制面接受，规格进入审批并获批。
+    </div>
+    <div class="status-line ok">✓ spec.draft ok · SPEC-001 APPROVED</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 第一次拒绝</summary>
+      <div class="body">
+        <p>packagePath 传了绝对路径，控制面直接拒绝：</p>
+        <pre><span class="r">PACKAGE_PATH_ESCAPED: packagePath must be project-relative (reason: ABSOLUTE_PATH)</span></pre>
+        <p>改成项目相对路径即可。</p>
+      </div>
+    </details>
+    <details class="aside-card a-fix" open>
+      <summary>修复 · 16 条 GENERATION_NOT_READY</summary>
+      <div class="body">
+        <p>报错原文（jsonPointer 原样贴出）：</p>
+        <pre><span class="r">algorithms/...algorithm-spec.json#/numericPolicy/binaryPoint</span>        <span class="y">必须声明 binary point</span>
+<span class="r">algorithms/...algorithm-spec.json#/numericPolicy/intermediateWidth</span>     <span class="y">必须声明 intermediate width</span>
+<span class="r">decisions.json#/items/0..3/status</span>  ×4                                <span class="y">决策必须 ACCEPTED 或 REJECTED</span>
+<span class="r">modules/...module-spec.json#/dataObjects/0,1/ownership</span>  ×2             <span class="y">必须是 owned / observed</span>
+<span class="r">modules/...module-spec.json#/ports/1/clockDomain</span>                       <span class="y">rst_n_i 也要绑定时钟域</span>
+<span class="r">system-spec.json#/connections/0,1/from</span>  ×2                            <span class="y">连接两端都必须是 instance.port</span>
+<span class="r">system-spec.json#/connections/2/to</span>  方向不匹配                          <span class="y">to 必须是输入端口</span>
+<span class="r">system-spec.json#/connections/2/to</span>  宽度不匹配                         <span class="y">10 位总线不能接 1 位端口</span>
+<span class="r">system-spec.json#/connections/3/to</span>                                    <span class="y">同上</span>
+<span class="r">verification/coverage.json#/items/0,1/rule</span>  ×2                        <span class="y">覆盖项必须有可度量的 rule</span></pre>
+        <p><b>逐条修法：</b>numericPolicy 补 <code>"binaryPoint": 0, "intermediateWidth": "NUM_LEDS"</code>；
+        四个决策补 <code>"status": "ACCEPTED"</code>；ownership 改成枚举 <code>"owned"</code>；
+        复位端口补 <code>"clockDomain": "clk_50m"</code>；连接重建模——给板级物料的契约加一个 10 位输入端口
+        <code>led_bus_i</code> 承接总线（时钟/复位连接直接删除：控制面只强制 data 输入的连接性）；
+        覆盖项补 <code>rule</code> 文本。修完重新密封，再提交：</p>
+        <pre><span class="g">spec.draft → ok:true，SPEC-001 DRAFT，generationReady:true</span>
+<span class="g">spec.approve → SPEC-001 APPROVED（approvalDigest 56b22f18…）</span></pre>
+      </div>
+    </details>
+    <details class="aside-card a-learn">
+      <summary>知识 · 经验沉淀</summary>
+      <div class="body">
+        <p>本地密封通过 ≠ 控制面接受。两层校验各有分工——本地管「结构与渲染」，
+        控制面管「生成就绪」（枚举、方向、宽度、连接性、义务可度量）。报错都带精确 jsonPointer，照着改就行。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="step-row">
+  <div class="flow">
+  <div class="step">
+    <span class="step-no">STEP 5</span>
+    <h3>按规格写 RTL 与 testbench</h3>
+    <p class="why">这一步在做什么：把模块契约翻译成代码。规格里写死的名字（端口、参数、实例名 u_marquee）在这里必须一致。</p>
+    <div class="say">
+      <div class="say-hint">💬 对 Trae 说：</div>
+      <button class="copy-btn">复制</button>
+      <pre>规格定了，那就开始写代码吧：跑马灯本体做成一个模块，顶层把十个灯接出去，管脚从板卡资料里查；再配个仿真，平时仿真跑快一点没关系。</pre>
+    </div>
+    <div class="obs"><span class="tag">看什么</span>本章过后工程里新增：<code>rtl/marquee10.sv</code>、改写的 <code>rtl/top.v</code>、
+    <code>sim/tb_marquee10.sv</code>、ISF 尾部多出的 9 组 assign、XML 里多出的一行 design_file，
+    以及 <code>spec/marquee-baseline/specification.md</code>（密封器渲染的人读版规格）。</div>
+  </div>
+  </div>
+  <aside class="rail"><div class="rail-inner">
+    <details class="aside-card a-learn" open>
+      <summary>知识 · 两个被规格约束的细节</summary>
+      <div class="body">
+        <p><b>复位期间全灭</b>（REQ-2）：输出寄存 <code>led_out_r</code> 用异步复位清零，释放后 1 拍呈现 one-hot 初始码型；
+        内部逻辑用 3 级同步释放链——这正是「异步断言、同步释放」的双层写法。</p>
+        <p><b>仿真提速</b>：顶层带 <code>STEP_CYCLES</code> 参数，testbench 例化时覆盖为 4（上板默认 6,250,000 = 8 Hz）。</p>
+      </div>
+    </details>
+  </div></aside>
+</div>
+
+<div class="lead">
+<section class="card summary">
+  <h3>小结与预告</h3>
+  <p>意图、等级、规格三件套就位。下一章进入候选链：candidate.deliver 冻结字节、控制面亲跑 iverilog、
+  PASS 后晋级基线——中间还有一个非常有趣的「词法陷阱」等着我们。</p>
+</section>
+<div class="ch-nav"><a href="03-new-project.html">← 上一章</a><a href="05-candidate-sim.html">下一章：候选与仿真 →</a></div>
+</div>
+</main>
+<script src="assets/site.js?v=4"></script>
+</body>
+</html>

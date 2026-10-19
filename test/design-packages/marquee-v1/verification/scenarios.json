@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "scenarios",
+  "items": [
+    {
+      "id": "SCEN-001",
+      "title": "复位释放后从 LED0 重启",
+      "moduleId": "marquee-core",
+      "verificationRole": "reset",
+      "requirementIds": ["REQ-001"],
+      "preconditions": ["arst_n_i 已断言（低电平）至少 3 个时钟周期", "clk_i 稳定运行"],
+      "stimulus": ["在任意序列中间重新断言 arst_n_i 并保持 3 周期", "释放 arst_n_i"],
+      "expected": ["同步释放后（rst_sync_r[2] 变高后）首个采样 led_o == 10'b0000000001", "cnt_r 从 0 重新计数", "输出全程无 X"],
+      "endCondition": "释放后观察到第一个 step_tick 步进"
+    },
+    {
+      "id": "SCEN-002",
+      "title": "one-hot 循环左移主流程",
+      "moduleId": "marquee-core",
+      "verificationRole": "main-flow",
+      "requirementIds": ["REQ-002"],
+      "preconditions": ["复位已释放", "STEP_CYCLES 参数覆盖为 4（仿真提速）"],
+      "stimulus": ["自由运行 clk_i，无其他激励"],
+      "expected": ["任一采样时刻 popcount(led_o) == 1", "相邻步进满足 rotate-left（含 led[9] -> led[0]）", "序列周期 = 10 步"],
+      "endCondition": "连续观察到至少 3 个完整旋转周期"
+    },
+    {
+      "id": "SCEN-003",
+      "title": "步进间隔与回绕边界",
+      "moduleId": "marquee-core",
+      "verificationRole": "critical-boundary",
+      "requirementIds": ["REQ-003"],
+      "preconditions": ["复位已释放", "STEP_CYCLES = 4"],
+      "stimulus": ["自由运行 clk_i"],
+      "expected": ["相邻两次 led_o 翻转之间恰好间隔 STEP_CYCLES 个时钟周期", "led[9] 保持满 STEP_CYCLES 周期后，下一个 step_tick 回绕到 led[0]", "整圈周期 = 10 x STEP_CYCLES 周期"],
+      "endCondition": "包含至少 2 次 led[9]->led[0] 回绕的观察窗结束"
+    },
+    {
+      "id": "SCEN-004",
+      "title": "顶层集成冒烟",
+      "moduleId": "marquee-core",
+      "verificationRole": "integration-smoke",
+      "requirementIds": ["REQ-004"],
+      "preconditions": ["顶层 t20f256_xd_ps_eval_marquee + led_marquee 联合编译通过"],
+      "stimulus": ["施加 50 MHz 时钟与一次上电复位序列"],
+      "expected": ["联合仿真连续完成 >= 2 整圈（20 步）无挂起", "led_o 全程无 X", "testbench 自检输出 TB-RESULT: PASS"],
+      "endCondition": "testbench 正常结束并打印结果标记"
+    }
+  ]
+}

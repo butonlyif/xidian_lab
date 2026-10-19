@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "2.0",
+  "kind": "coverage",
+  "items": [
+    {
+      "id": "COV-STATES",
+      "moduleId": "marquee10",
+      "definition": "全部 NUM_LEDS=10 个点亮位置各被点亮至少一次",
+      "rule": "仿真全程采样 led_bus_o 的独热位序号，位置 0..9 每个至少出现一次即达成"
+    },
+    {
+      "id": "COV-RESET",
+      "moduleId": "marquee10",
+      "definition": "复位断言期与复位释放后的行为各被观察至少一次",
+      "rule": "仿真包含至少一个 arst_n==0 采样窗口与一个 arst_n==1 后连续 STEP_CYCLES 以上观察窗口，两类窗口各出现一次即达成"
+    }
+  ]
+}
